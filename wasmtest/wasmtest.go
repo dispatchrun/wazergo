@@ -1,5 +1,5 @@
 // Package wasmtest provides building blocks useful to write tests for wazero
-// plugins.
+// host modules.
 package wasmtest
 
 import (
@@ -39,8 +39,8 @@ func (c *Context) Close() error {
 	return nil
 }
 
-func Load[T wasm.Module](ctx *Context, p wasm.Plugin[T], opts ...wasm.Option[T]) {
-	c, err := wasm.Compile(ctx.compilation, p, wasm.Log[T](ctx.logger))
+func Load[T wasm.Module](ctx *Context, m wasm.HostModule[T], opts ...wasm.Option[T]) {
+	c, err := wasm.Compile(ctx.compilation, m, wasm.Log[T](ctx.logger))
 	if err != nil {
 		panic(err)
 	}
