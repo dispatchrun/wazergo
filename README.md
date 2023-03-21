@@ -115,6 +115,10 @@ useful:
 ```go
 package my_host_module
 
+import (
+    "github.com/stealthrocket/wasm-go"
+)
+
 // Declare the host module from a set of exported functions.
 var HostModule wasm.HostModule[*Module] = functions{
     ...
