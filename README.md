@@ -107,11 +107,73 @@ func (m *Module) Answer(ctx context.Context) Int32 {
 
 ### Building Host Modules
 
+To construct a host module, the program must declare a type satisfying the
+`wasm.Module` interface, and construct a `wasm.HostModule[T]` of that type,
+along with the list of its exported functions. The following model is often
+useful:
+
+```go
+package my_host_module
+
+// Declare the host module from a set of exported functions.
+var HostModule wasm.HostModule[*Module] = functions{
+    ...
+}
+
+// The `functions` type impements `wasm.HostModule[*Module]`, providing the
+// module name, map of exported functions, and the ability to create instances
+// of the module type.
+type functions wasm.Functions[*Module]
+
+func (f functions) Name() string                       { return "my_host_module" }
+func (f functions) Functions() wasm.Functions[*Module] { return (wasm.Functions[*Module])(p) }
+func (f functions) Instantiate(opts ...Option) *Module { return NewModule(opts...) }
+
+type Option = wasm.Option[*Module]
+
+// Module will be the Go type we use to maintain the state of our module
+// instances.
+type Module struct {
+    ...
+}
+
+func NewModule(opts ...Option) *Module {
+    ...
+}
+```
+
+There are a few concepts of the library that we are getting exposed to in this
+example:
+
+- `wasm.HostModule` is an interface parametrized on the type of our module
+  instances. This interface is the bridge between the library and the wazero
+  APIs.
+
+- `wasm.Functions` is a map type parametrized on the module type, it associates
+  the exported function names to the method of the module type that will be
+  invoked when WebAssembly programs invoke them as imported symbols.
+
+- `wasm.Option` is an interface type parameterized on the module type and
+  representing the configuration options available on the module. It is common
+  for the package to declare options using function constructors, for example:
+
+  ```go
+  func CustomValue(value int) Option {
+    return wasm.OptionFunc(func(m *Module) { ... })
+  }
+  ```
+
+These types are helpers to glue the Go type where the host module is implemented
+(`Module` in our example) to the generic abstractions provided by the library to
+drive configuration and instantiation of the modules in wazero.
+
 ### Declaring Host Functions
 
 ### Composite Types
 
 ### Memory Safety
+
+### Type Safety
 
 ### Context Propagation
 
@@ -120,8 +182,7 @@ func (m *Module) Answer(ctx context.Context) Int32 {
 No software is ever complete, and while there will be porbably be additions and
 fixes brought to the library, it is usable in its current state, and while we
 aim to maintain backward compatibility, breaking changes might be introduced if
-necessary to correct design flaws that we uncover as we learn more from using
-the code.
+necessary to improve usability as we learn more from using the library.
 
 Pull requests are welcome! Anything that is not a simple fix would probably
 benefit from being discussed in an issue first.
