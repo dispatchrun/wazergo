@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/stealthrocket/wasm-go"
+	"github.com/stealthrocket/wasm-go/types"
 	"github.com/tetratelabs/wazero/api"
 )
 
@@ -19,20 +20,20 @@ func sbrk(memory api.Memory, size uint32) ([]byte, uint32) {
 	return brk(memory, malloc, size)
 }
 
-// Bytes is an extension of the wasm.Bytes type which adds the ability to treat
+// Bytes is an extension of the types.Bytes type which adds the ability to treat
 // those values as results, so they can be passed as argument to Call* functions
 // in tests. The content of the byte slice is copied to the WebAssembly module
 // memory, starting at address zero in each invocation of Call* functions. This
 // would be really unsafe to do in a production applicaiton, which is why the
 // feature is only made available to unit tests.
-type Bytes wasm.Bytes
+type Bytes types.Bytes
 
 func (arg Bytes) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	wasm.Bytes(arg).FormatValue(w, memory, stack)
+	types.Bytes(arg).FormatValue(w, memory, stack)
 }
 
 func (arg Bytes) LoadValue(memory api.Memory, stack []uint64) Bytes {
-	return Bytes(wasm.Bytes(arg).LoadValue(memory, stack))
+	return Bytes(types.Bytes(arg).LoadValue(memory, stack))
 }
 
 func (arg Bytes) StoreValue(memory api.Memory, stack []uint64) {
@@ -43,5 +44,5 @@ func (arg Bytes) StoreValue(memory api.Memory, stack []uint64) {
 }
 
 func (arg Bytes) ValueTypes() []api.ValueType {
-	return wasm.Bytes(arg).ValueTypes()
+	return types.Bytes(arg).ValueTypes()
 }

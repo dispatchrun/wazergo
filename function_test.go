@@ -8,9 +8,12 @@ import (
 	"testing"
 
 	"github.com/stealthrocket/wasm-go"
+	. "github.com/stealthrocket/wasm-go/types"
 	"github.com/stealthrocket/wasm-go/wasmtest"
 	"github.com/tetratelabs/wazero/api"
 )
+
+type value[T any] wasm.ParamResult[T]
 
 type instance struct{}
 
@@ -24,34 +27,34 @@ func (plugin) Instantiate(...wasm.Option[*instance]) *instance { return nil }
 
 func TestFunc0(t *testing.T) {
 	oops := errors.New("oops")
-	testFunc0(t, 1, func(*instance, context.Context) wasm.Int32 { return 1 })
-	testFunc0(t, 2, func(*instance, context.Context) wasm.Int64 { return 2 })
-	testFunc0(t, 3, func(*instance, context.Context) wasm.Uint32 { return 3 })
-	testFunc0(t, 4, func(*instance, context.Context) wasm.Uint64 { return 4 })
-	testFunc0(t, 0.1, func(*instance, context.Context) wasm.Float32 { return 0.1 })
-	testFunc0(t, 0.5, func(*instance, context.Context) wasm.Float64 { return 0.5 })
-	testFunc0(t, wasm.OK, func(*instance, context.Context) wasm.Error { return wasm.OK })
-	testFunc0(t, wasm.Fail(^wasm.Errno(0)), func(*instance, context.Context) wasm.Error { return wasm.Fail(oops) })
+	testFunc0(t, 1, func(*instance, context.Context) Int32 { return 1 })
+	testFunc0(t, 2, func(*instance, context.Context) Int64 { return 2 })
+	testFunc0(t, 3, func(*instance, context.Context) Uint32 { return 3 })
+	testFunc0(t, 4, func(*instance, context.Context) Uint64 { return 4 })
+	testFunc0(t, 0.1, func(*instance, context.Context) Float32 { return 0.1 })
+	testFunc0(t, 0.5, func(*instance, context.Context) Float64 { return 0.5 })
+	testFunc0(t, OK, func(*instance, context.Context) Error { return OK })
+	testFunc0(t, Fail(^Errno(0)), func(*instance, context.Context) Error { return Fail(oops) })
 }
 
 func TestFunc1(t *testing.T) {
-	testFunc1(t, 42, 42, func(this *instance, ctx context.Context, v wasm.Int32) wasm.Int32 {
+	testFunc1(t, 42, 42, func(this *instance, ctx context.Context, v Int32) Int32 {
 		return v
 	})
-	testFunc1(t, wasm.Res(wasm.Int32(42)), wasmtest.Bytes("42"),
-		func(this *instance, ctx context.Context, v wasmtest.Bytes) wasm.Optional[wasm.Int32] {
+	testFunc1(t, Res(Int32(42)), wasmtest.Bytes("42"),
+		func(this *instance, ctx context.Context, v wasmtest.Bytes) Optional[Int32] {
 			i, err := strconv.Atoi(string(v))
-			return wasm.Opt(wasm.Int32(i), err)
+			return Opt(Int32(i), err)
 		},
 	)
 }
 
 func TestFunc2(t *testing.T) {
-	testFunc2(t, wasm.Res(wasm.Int32(41)), wasmtest.Bytes("42"), wasmtest.Bytes("-1"),
-		func(this *instance, ctx context.Context, v1, v2 wasmtest.Bytes) wasm.Optional[wasm.Int32] {
+	testFunc2(t, Res(Int32(41)), wasmtest.Bytes("42"), wasmtest.Bytes("-1"),
+		func(this *instance, ctx context.Context, v1, v2 wasmtest.Bytes) Optional[Int32] {
 			i1, _ := strconv.Atoi(string(v1))
 			i2, _ := strconv.Atoi(string(v2))
-			return wasm.Res(wasm.Int32(i1 + i2))
+			return Res(Int32(i1 + i2))
 		},
 	)
 }
