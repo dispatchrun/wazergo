@@ -130,7 +130,7 @@ var HostModule wasm.HostModule[*Module] = functions{
 type functions wasm.Functions[*Module]
 
 func (f functions) Name() string                       { return "my_host_module" }
-func (f functions) Functions() wasm.Functions[*Module] { return (wasm.Functions[*Module])(p) }
+func (f functions) Functions() wasm.Functions[*Module] { return (wasm.Functions[*Module])(f) }
 func (f functions) Instantiate(opts ...Option) *Module { return NewModule(opts...) }
 
 type Option = wasm.Option[*Module]
