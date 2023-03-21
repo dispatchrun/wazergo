@@ -157,15 +157,16 @@ func NewModule(opts ...Option) *Module {
 There are a few concepts of the library that we are getting exposed to in this
 example:
 
-- `wasm.HostModule` is an interface parametrized on the type of our module
+- `wasm.HostModule[T]` is an interface parametrized on the type of our module
   instances. This interface is the bridge between the library and the wazero
   APIs.
 
-- `wasm.Functions` is a map type parametrized on the module type, it associates
-  the exported function names to the method of the module type that will be
-  invoked when WebAssembly programs invoke them as imported symbols.
+- `wasm.Functions[T]` is a map type parametrized on the module type,
+  it associates the exported function names to the method of the module type
+  that will be invoked when WebAssembly programs invoke them as imported
+  symbols.
 
-- `wasm.Option` is an interface type parameterized on the module type and
+- `wasm.Option[T]` is an interface type parameterized on the module type and
   representing the configuration options available on the module. It is common
   for the package to declare options using function constructors, for example:
 
@@ -181,7 +182,53 @@ drive configuration and instantiation of the modules in wazero.
 
 ### Declaring Host Functions
 
-### Composite Types
+The declaration of host functions is done by constructing a map of exported
+names to methods of the module type, and is where the `types` subpackage can be
+employed to define parameters and return values.
+
+```go
+package my_host_module
+
+import (
+    "github.com/stealthrocket/wasm-go"
+    . "github.com/stealthrocket/wasm-go/types"
+)
+
+var HostModule wasm.HostModule[*Module] = functions{
+    "answer": wasm.F0((*Module).Answer),
+    "double": wasm.F1((*Module).Double),
+}
+
+...
+
+func (m *Module) Answer(ctx context.Context) Int32 {
+    return 42
+}
+
+func (m *Module) Double(ctx context.Context, f Float32) Float32 {
+    return f + f
+}
+```
+
+- Exported methods of a host module must always start with a `context.Context`
+  parameter.
+
+- The parameters and return values must satisfy `wasm.Param[T]` and `wasm.Result`
+  interfaces. The `types` subpackage contains types that do, but the application
+  can construct its own for more advanced use cases (e.g. struct types).
+
+- When constructing the `wasm.Functions[T]` map, the program must use one of the
+  `wasm.F{n}` generics constructors to create a `wasm.Function[T]` value from
+  methods of the module. The program must use a function constructor matching
+  the number of parameter to the method (e.g. `wasm.F2` if there are two
+  parameters, not including the context).
+
+- Methods of the module must have a single return value. For the common case of
+  having to return either a value or an error (in which case the WebAssembly
+  function has two results), the generic `wasm.Optional[T]` type can be used,
+  or the application may declare its own result types.
+
+### Composite Parameter Types
 
 ### Memory Safety
 
