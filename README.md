@@ -82,20 +82,46 @@ achieve these goals, and this repository is the outcome of that experiment.
 ## Usage
 
 This package is intended to be used as a library to create host modules for
-wazero.
+wazero. The code is separated in two packages: the top level `wasm` package
+contains the type and functions used to build host modules, including the
+declaration of functions they export. The `types` subpackage contains the
+declaration of generic types representing integers, floats, pointers, arrays,
+etc...
+
+Programs using the `types` package often import its symbols directly into their
+package name namespace(s), which helps declare the host module functions. For
+example:
+
+```go
+import (
+    . "github.com/stealthrocket/wasm-go/types"
+)
+
+...
+
+// Answer returns a Int32 declared in the types package.
+func (m *Module) Answer(ctx context.Context) Int32 {
+    return 42
+}
+```
 
 ### Building Host Modules
 
 ### Declaring Host Functions
 
-### Composite Types in Function Signatures
+### Composite Types
+
+### Memory Safety
 
 ### Context Propagation
 
 ## Contributing
 
 No software is ever complete, and while there will be porbably be additions and
-fixes brought to the library, it is dependable in its current state.
+fixes brought to the library, it is usable in its current state, and while we
+aim to maintain backward compatibility, breaking changes might be introduced if
+necessary to correct design flaws that we uncover as we learn more from using
+the code.
 
 Pull requests are welcome! Anything that is not a simple fix would probably
 benefit from being discussed in an issue first.
