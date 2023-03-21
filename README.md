@@ -74,9 +74,9 @@ integer or floating point types:
 
 At [Stealth Rocket](https://github.com/stealthrocket), we leverage wazero as
 a core WebAssembly runtime, that we extend with host modules to enhance the
-capabilities of the WebAssembly programs. We needed to improve safety and
-usability of our host modules, while maintaining the performance overhead to
-a minimum. We wanted to test the hypothesis that Go generics could be used to
+capabilities of the WebAssembly programs. We wanted to improve safety and
+maintainability of our host modules, while maintaining the performance overhead
+to a minimum. We wanted to test the hypothesis that Go generics could be used to
 achieve these goals, and this repository is the outcome of that experiment.
 
 ## Usage
