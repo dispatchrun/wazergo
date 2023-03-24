@@ -4,8 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/stealthrocket/wasm-go"
-	. "github.com/stealthrocket/wasm-go/types"
+	. "github.com/stealthrocket/wazergo/types"
 )
 
 func TestLoadAndStoreValue(t *testing.T) {

@@ -10,11 +10,77 @@ import (
 	"syscall"
 	"unsafe"
 
-	"github.com/stealthrocket/wasm-go"
+	"github.com/stealthrocket/wazergo/wasm"
 	"github.com/tetratelabs/wazero/api"
 )
 
-func objectSize[T wasm.Object[T]]() int {
+// Value represents a field in a function signature, which may be a parameter
+// or a result.
+type Value interface {
+	// Writes a human-readable representation of the field to w, using the
+	// memory and stack of a program to locate the field value.
+	FormatValue(w io.Writer, memory api.Memory, stack []uint64)
+	// Returns the sequence of primitive types that the result value is
+	// composed of. Values of primitive types will have a single type,
+	// but more complex types will have more (e.g. a buffer may hold two
+	// 32 bits integers for the pointer and length). The number of types
+	// indicates the number of words that are consumed from the stack when
+	// loading the parameter.
+	ValueTypes() []api.ValueType
+}
+
+// Param is an interface representing parameters of WebAssembly functions which
+// are read form the stack.
+//
+// The interface is mainly used as a constraint for generic type parameters.
+type Param[T any] interface {
+	Value
+	// Loads and returns the parameter value from the stack and optionally
+	// reading its content from memory.
+	LoadValue(memory api.Memory, stack []uint64) T
+}
+
+// Result is an interface reprenting results of WebAssembly functions which
+// are written to the stack.
+//
+// The interface is mainly used as a constraint for generic type parameters.
+type Result interface {
+	Value
+	// Stores the result value onto the stack and optionally writing its
+	// content to memory.
+	StoreValue(memory api.Memory, stack []uint64)
+}
+
+// ParamResult is an interface implemented by types which can be used as both a
+// parameter and a result.
+type ParamResult[T any] interface {
+	Param[T]
+	Result
+}
+
+// Object is an interface which represents values that can be loaded or stored
+// in memory.
+//
+// The interface is mainly used as a constraint for generic type parameters.
+type Object[T any] interface {
+	// Writes a human-readable representation of the object to w.
+	FormatObject(w io.Writer, memory api.Memory, object []byte)
+	// Loads and returns the object from the given byte slice. If the object
+	// contains pointers it migh read them from the module memory passed as
+	// first argument.
+	LoadObject(memory api.Memory, object []byte) T
+	// Stores the object to the given tye slice. If the object contains pointers
+	// it might write them to the module memory passed as first argument (doing
+	// so without writing to arbitrary location is difficult so this use case is
+	// rather rare).
+	StoreObject(memory api.Memory, object []byte)
+	// Returns the size of the the object in bytes. The byte slices passed to
+	// LoadObject and StoreObjects are guaranteed to be at least of the length
+	// returned by this method.
+	ObjectSize() int
+}
+
+func objectSize[T Object[T]]() int {
 	var typ T
 	return typ.ObjectSize()
 }
@@ -54,9 +120,9 @@ func (arg Int8) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Int8] = Int8(0)
-	_ wasm.Param[Int8]  = Int8(0)
-	_ wasm.Result       = Int8(0)
+	_ Object[Int8] = Int8(0)
+	_ Param[Int8]  = Int8(0)
+	_ Result       = Int8(0)
 )
 
 type Int16 int16
@@ -94,9 +160,9 @@ func (arg Int16) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Int16] = Int16(0)
-	_ wasm.Param[Int16]  = Int16(0)
-	_ wasm.Result        = Int16(0)
+	_ Object[Int16] = Int16(0)
+	_ Param[Int16]  = Int16(0)
+	_ Result        = Int16(0)
 )
 
 type Int32 int32
@@ -134,9 +200,9 @@ func (arg Int32) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Int32] = Int32(0)
-	_ wasm.Param[Int32]  = Int32(0)
-	_ wasm.Result        = Int32(0)
+	_ Object[Int32] = Int32(0)
+	_ Param[Int32]  = Int32(0)
+	_ Result        = Int32(0)
 )
 
 type Int64 int64
@@ -174,9 +240,9 @@ func (arg Int64) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Int64] = Int64(0)
-	_ wasm.Param[Int64]  = Int64(0)
-	_ wasm.Result        = Int64(0)
+	_ Object[Int64] = Int64(0)
+	_ Param[Int64]  = Int64(0)
+	_ Result        = Int64(0)
 )
 
 type Uint8 uint8
@@ -214,9 +280,9 @@ func (arg Uint8) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Uint8] = Uint8(0)
-	_ wasm.Param[Uint8]  = Uint8(0)
-	_ wasm.Result        = Uint8(0)
+	_ Object[Uint8] = Uint8(0)
+	_ Param[Uint8]  = Uint8(0)
+	_ Result        = Uint8(0)
 )
 
 type Uint16 uint16
@@ -254,9 +320,9 @@ func (arg Uint16) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Uint16] = Uint16(0)
-	_ wasm.Param[Uint16]  = Uint16(0)
-	_ wasm.Result         = Uint16(0)
+	_ Object[Uint16] = Uint16(0)
+	_ Param[Uint16]  = Uint16(0)
+	_ Result         = Uint16(0)
 )
 
 type Uint32 uint32
@@ -294,9 +360,9 @@ func (arg Uint32) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Uint32] = Uint32(0)
-	_ wasm.Param[Uint32]  = Uint32(0)
-	_ wasm.Result         = Uint32(0)
+	_ Object[Uint32] = Uint32(0)
+	_ Param[Uint32]  = Uint32(0)
+	_ Result         = Uint32(0)
 )
 
 type Uint64 uint64
@@ -334,9 +400,9 @@ func (arg Uint64) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Uint64] = Uint64(0)
-	_ wasm.Param[Uint64]  = Uint64(0)
-	_ wasm.Result         = Uint64(0)
+	_ Object[Uint64] = Uint64(0)
+	_ Param[Uint64]  = Uint64(0)
+	_ Result         = Uint64(0)
 )
 
 type Float32 float32
@@ -374,9 +440,9 @@ func (arg Float32) ObjectSize() int {
 }
 
 var (
-	_ wasm.Object[Float32] = Float32(0)
-	_ wasm.Param[Float32]  = Float32(0)
-	_ wasm.Result          = Float32(0)
+	_ Object[Float32] = Float32(0)
+	_ Param[Float32]  = Float32(0)
+	_ Result          = Float32(0)
 )
 
 type Float64 float64
@@ -414,8 +480,8 @@ func (arg Float64) ObjectSize() int {
 }
 
 var (
-	_ wasm.Param[Float64] = Float64(0)
-	_ wasm.Result         = Float64(0)
+	_ Param[Float64] = Float64(0)
+	_ Result         = Float64(0)
 )
 
 type primitive interface {
@@ -486,7 +552,7 @@ func (arg Array[T]) ValueTypes() []api.ValueType {
 }
 
 var (
-	_ wasm.Param[Array[byte]] = Array[byte](nil)
+	_ Param[Array[byte]] = Array[byte](nil)
 )
 
 // Bytes is a type alias for arrays of bytes, which is a common use case
@@ -538,7 +604,7 @@ func (arg Bytes) array() Array[byte] {
 }
 
 var (
-	_ wasm.Param[Bytes] = Bytes(nil)
+	_ Param[Bytes] = Bytes(nil)
 )
 
 // String is similar to Bytes but holds the value as a Go string which is not
@@ -560,12 +626,12 @@ func (arg String) ValueTypes() []api.ValueType {
 }
 
 var (
-	_ wasm.Param[String] = String("")
+	_ Param[String] = String("")
 )
 
 // Pointer is a parameter type used to represent a pointer to an object held in
 // program memory.
-type Pointer[T wasm.Object[T]] struct {
+type Pointer[T Object[T]] struct {
 	memory api.Memory
 	offset uint32
 }
@@ -574,7 +640,7 @@ type Pointer[T wasm.Object[T]] struct {
 //
 // This function is mostly useful to construct pointers to pass to module
 // methods in tests, its usage in actual production code should be rare.
-func New[T wasm.Object[T]]() Pointer[T] {
+func New[T Object[T]]() Pointer[T] {
 	return Ptr[T](make(wasm.Memory, objectSize[T]()), 0)
 }
 
@@ -583,7 +649,7 @@ func New[T wasm.Object[T]]() Pointer[T] {
 //
 // This function is mostly useful to construct pointers to pass to module
 // methods in tests, its usage in actual production code should be rare.
-func Ptr[T wasm.Object[T]](memory api.Memory, offset uint32) Pointer[T] {
+func Ptr[T Object[T]](memory api.Memory, offset uint32) Pointer[T] {
 	return Pointer[T]{memory, offset}
 }
 
@@ -626,11 +692,11 @@ func (arg Pointer[T]) Index(index int) Pointer[T] {
 }
 
 var (
-	_ wasm.Param[Pointer[None]] = Pointer[None]{}
+	_ Param[Pointer[None]] = Pointer[None]{}
 )
 
 // List represents a sequence of objects held in module memory.
-type List[T wasm.Object[T]] struct {
+type List[T Object[T]] struct {
 	ptr Pointer[T]
 	len uint32
 }
@@ -680,12 +746,12 @@ func (arg List[T]) Range(fn func(int, T) bool) {
 }
 
 var (
-	_ wasm.Param[List[None]] = List[None]{}
+	_ Param[List[None]] = List[None]{}
 )
 
 // Optional represents a function result which may be missing due to the program
 // encountering an error. The type contains either a value of type T or an error.
-type Optional[T wasm.ParamResult[T]] struct {
+type Optional[T ParamResult[T]] struct {
 	res T
 	err error
 }
@@ -736,18 +802,18 @@ func (opt Optional[T]) ValueTypes() []api.ValueType {
 }
 
 // Opt constructs an optional from a pair of a result and error.
-func Opt[T wasm.ParamResult[T]](res T, err error) Optional[T] {
+func Opt[T ParamResult[T]](res T, err error) Optional[T] {
 	return Optional[T]{res: res, err: err}
 }
 
 // Res constructs an optional from a value.
-func Res[T wasm.ParamResult[T]](res T) Optional[T] {
+func Res[T ParamResult[T]](res T) Optional[T] {
 	return Optional[T]{res: res}
 }
 
 // Err constructs an optional from an error. The function panics if the error is
 // nil since a nil error indicates that the optional should contain a value.
-func Err[T wasm.ParamResult[T]](err error) Optional[T] {
+func Err[T ParamResult[T]](err error) Optional[T] {
 	if err == nil {
 		panic("cannot create an optional error value from a nil error")
 	}
@@ -755,8 +821,8 @@ func Err[T wasm.ParamResult[T]](err error) Optional[T] {
 }
 
 var (
-	_ wasm.Param[Optional[None]] = Optional[None]{}
-	_ wasm.Result                = Optional[None]{}
+	_ Param[Optional[None]] = Optional[None]{}
+	_ Result                = Optional[None]{}
 )
 
 // None is a special type of size zero bytes.
@@ -779,9 +845,9 @@ func (None) ValueTypes() []api.ValueType { return nil }
 func (None) ObjectSize() int { return 0 }
 
 var (
-	_ wasm.Object[None] = None{}
-	_ wasm.Param[None]  = None{}
-	_ wasm.Result       = None{}
+	_ Object[None] = None{}
+	_ Param[None]  = None{}
+	_ Result       = None{}
 )
 
 // Error is a special optional type which either contains an error or no values.

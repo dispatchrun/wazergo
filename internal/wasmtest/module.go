@@ -1,7 +1,7 @@
 package wasmtest
 
 import (
-	"github.com/stealthrocket/wasm-go"
+	"github.com/stealthrocket/wazergo"
 	"github.com/tetratelabs/wazero/api"
 )
 
@@ -15,11 +15,11 @@ type Module struct {
 }
 
 // ModuleOption represents configuration options for the Module type.
-type ModuleOption = wasm.Option[*Module]
+type ModuleOption = wazergo.Option[*Module]
 
 // Memory sets the memory of a Module instance.
 func Memory(memory api.Memory) ModuleOption {
-	return wasm.OptionFunc(func(module *Module) { module.memory.Memory = memory })
+	return wazergo.OptionFunc(func(module *Module) { module.memory.Memory = memory })
 }
 
 // NewModule constructs a Module instance with the given name and configuration
@@ -27,7 +27,7 @@ func Memory(memory api.Memory) ModuleOption {
 func NewModule(name string, opts ...ModuleOption) *Module {
 	module := &Module{name: name}
 	module.memory.module = module
-	wasm.Configure(module, opts...)
+	wazergo.Configure(module, opts...)
 	return module
 }
 

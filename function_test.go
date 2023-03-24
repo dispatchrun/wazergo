@@ -1,4 +1,4 @@
-package wasm_test
+package wazergo_test
 
 import (
 	"context"
@@ -7,13 +7,14 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/stealthrocket/wasm-go"
-	. "github.com/stealthrocket/wasm-go/types"
-	"github.com/stealthrocket/wasm-go/wasmtest"
+	. "github.com/stealthrocket/wazergo"
+	"github.com/stealthrocket/wazergo/internal/wasmtest"
+	. "github.com/stealthrocket/wazergo/types"
+	"github.com/stealthrocket/wazergo/wasm"
 	"github.com/tetratelabs/wazero/api"
 )
 
-type value[T any] wasm.ParamResult[T]
+type value[T any] ParamResult[T]
 
 type instance struct{}
 
@@ -21,9 +22,9 @@ func (*instance) Close(context.Context) error { return nil }
 
 type plugin struct{}
 
-func (plugin) Name() string                                    { return "test" }
-func (plugin) Functions() wasm.Functions[*instance]            { return nil }
-func (plugin) Instantiate(...wasm.Option[*instance]) *instance { return nil }
+func (plugin) Name() string                               { return "test" }
+func (plugin) Functions() Functions[*instance]            { return nil }
+func (plugin) Instantiate(...Option[*instance]) *instance { return nil }
 
 func TestFunc0(t *testing.T) {
 	oops := errors.New("oops")
@@ -59,34 +60,34 @@ func TestFunc2(t *testing.T) {
 	)
 }
 
-func testFunc(t *testing.T, opts []wasm.Option[*instance], test func(*instance, context.Context, api.Module)) {
+func testFunc(t *testing.T, opts []Option[*instance], test func(*instance, context.Context, api.Module)) {
 	t.Helper()
 	memory := wasm.NewFixedSizeMemory(wasm.PageSize)
 	module := wasmtest.NewModule("test", wasmtest.Memory(memory))
 	test(new(instance), context.Background(), module)
 }
 
-func testFunc0[R value[R]](t *testing.T, want R, f func(*instance, context.Context) R, opts ...wasm.Option[*instance]) {
+func testFunc0[R value[R]](t *testing.T, want R, f func(*instance, context.Context) R, opts ...Option[*instance]) {
 	t.Helper()
 	testFunc(t, opts, func(this *instance, ctx context.Context, module api.Module) {
 		t.Helper()
-		assertEqual(t, want, wasmtest.Call[R](wasm.F0(f), ctx, module, this))
+		assertEqual(t, want, wasmtest.Call[R](F0(f), ctx, module, this))
 	})
 }
 
-func testFunc1[R value[R], T value[T]](t *testing.T, want R, arg T, f func(*instance, context.Context, T) R, opts ...wasm.Option[*instance]) {
+func testFunc1[R value[R], T value[T]](t *testing.T, want R, arg T, f func(*instance, context.Context, T) R, opts ...Option[*instance]) {
 	t.Helper()
 	testFunc(t, opts, func(this *instance, ctx context.Context, module api.Module) {
 		t.Helper()
-		assertEqual(t, want, wasmtest.Call[R](wasm.F1(f), ctx, module, this, arg))
+		assertEqual(t, want, wasmtest.Call[R](F1(f), ctx, module, this, arg))
 	})
 }
 
-func testFunc2[R value[R], T1 value[T1], T2 value[T2]](t *testing.T, want R, arg1 T1, arg2 T2, f func(*instance, context.Context, T1, T2) R, opts ...wasm.Option[*instance]) {
+func testFunc2[R value[R], T1 value[T1], T2 value[T2]](t *testing.T, want R, arg1 T1, arg2 T2, f func(*instance, context.Context, T1, T2) R, opts ...Option[*instance]) {
 	t.Helper()
 	testFunc(t, opts, func(this *instance, ctx context.Context, module api.Module) {
 		t.Helper()
-		assertEqual(t, want, wasmtest.Call[R](wasm.F2(f), ctx, module, this, arg1, arg2))
+		assertEqual(t, want, wasmtest.Call[R](F2(f), ctx, module, this, arg1, arg2))
 	})
 }
 

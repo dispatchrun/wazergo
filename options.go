@@ -1,4 +1,4 @@
-package wasm
+package wazergo
 
 // Option is a generic interface used to represent options that apply
 // configuration to a value.

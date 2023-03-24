@@ -3,8 +3,8 @@ package wasmtest
 import (
 	"io"
 
-	"github.com/stealthrocket/wasm-go"
-	"github.com/stealthrocket/wasm-go/types"
+	"github.com/stealthrocket/wazergo/types"
+	"github.com/stealthrocket/wazergo/wasm"
 	"github.com/tetratelabs/wazero/api"
 )
 

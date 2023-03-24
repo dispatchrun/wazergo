@@ -1,4 +1,4 @@
-# wasm-go
+# wazergo
 
 This package is a library of generic types intended to help create WebAssembly
 host modules for [wazero](https://github.com/tetratelabs/wazero).
@@ -94,7 +94,7 @@ example:
 
 ```go
 import (
-    . "github.com/stealthrocket/wasm-go/types"
+    . "github.com/stealthrocket/wazergo/types"
 )
 
 ...
@@ -116,7 +116,7 @@ useful:
 package my_host_module
 
 import (
-    "github.com/stealthrocket/wasm-go"
+    "github.com/stealthrocket/wazergo"
 )
 
 // Declare the host module from a set of exported functions.
@@ -190,8 +190,8 @@ employed to define parameters and return values.
 package my_host_module
 
 import (
-    "github.com/stealthrocket/wasm-go"
-    . "github.com/stealthrocket/wasm-go/types"
+    "github.com/stealthrocket/wazergo"
+    . "github.com/stealthrocket/wazergo/types"
 )
 
 var HostModule wasm.HostModule[*Module] = functions{

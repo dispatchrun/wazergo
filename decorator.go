@@ -1,4 +1,4 @@
-package wasm
+package wazergo
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"log"
 	"strings"
 
+	. "github.com/stealthrocket/wazergo/types"
 	"github.com/tetratelabs/wazero/api"
 )
 

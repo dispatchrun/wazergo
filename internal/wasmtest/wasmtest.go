@@ -9,7 +9,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/stealthrocket/wasm-go"
+	"github.com/stealthrocket/wazergo"
 	"github.com/tetratelabs/wazero"
 )
 
@@ -17,8 +17,8 @@ type Context struct {
 	context       context.Context
 	runtime       wazero.Runtime
 	logger        *log.Logger
-	compilation   *wasm.CompilationContext
-	instantiation *wasm.InstantiationContext
+	compilation   *wazergo.CompilationContext
+	instantiation *wazergo.InstantiationContext
 }
 
 func NewContext(ctx context.Context, logger *log.Logger) *Context {
@@ -27,8 +27,8 @@ func NewContext(ctx context.Context, logger *log.Logger) *Context {
 		context:       ctx,
 		runtime:       runtime,
 		logger:        logger,
-		compilation:   wasm.NewCompilationContext(ctx, runtime),
-		instantiation: wasm.NewInstantiationContext(ctx, runtime),
+		compilation:   wazergo.NewCompilationContext(ctx, runtime),
+		instantiation: wazergo.NewInstantiationContext(ctx, runtime),
 	}
 }
 
@@ -39,12 +39,12 @@ func (c *Context) Close() error {
 	return nil
 }
 
-func Load[T wasm.Module](ctx *Context, m wasm.HostModule[T], opts ...wasm.Option[T]) {
-	c, err := wasm.Compile(ctx.compilation, m, wasm.Log[T](ctx.logger))
+func Load[T wazergo.Module](ctx *Context, m wazergo.HostModule[T], opts ...wazergo.Option[T]) {
+	c, err := wazergo.Compile(ctx.compilation, m, wazergo.Log[T](ctx.logger))
 	if err != nil {
 		panic(err)
 	}
-	if _, err := wasm.Instantiate(ctx.instantiation, c, opts...); err != nil {
+	if _, err := wazergo.Instantiate(ctx.instantiation, c, opts...); err != nil {
 		panic(err)
 	}
 }
@@ -54,16 +54,16 @@ type Cmd struct {
 	Params     []uint64
 }
 
-type CmdOption = wasm.Option[*Cmd]
+type CmdOption = wazergo.Option[*Cmd]
 
 func Entrypoint(fn string) CmdOption {
-	return wasm.OptionFunc(func(cmd *Cmd) { cmd.Entrypoint = fn })
+	return wazergo.OptionFunc(func(cmd *Cmd) { cmd.Entrypoint = fn })
 }
 
 func Params(values ...any) CmdOption {
 	params := make([]uint64, len(values))
 	push(params, values)
-	return wasm.OptionFunc(func(cmd *Cmd) { cmd.Params = params })
+	return wazergo.OptionFunc(func(cmd *Cmd) { cmd.Params = params })
 }
 
 func push(stack []uint64, values []any) {
@@ -85,7 +85,7 @@ func Exec(ctx *Context, path string, opts ...CmdOption) ([]uint64, error) {
 	cmd := &Cmd{
 		Entrypoint: "_start",
 	}
-	wasm.Configure(cmd, opts...)
+	wazergo.Configure(cmd, opts...)
 	binary, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -103,6 +103,6 @@ func Exec(ctx *Context, path string, opts ...CmdOption) ([]uint64, error) {
 		panic(err)
 	}
 	defer moduleInstance.Close(ctx.context)
-	callContext := wasm.NewCallContext(ctx.context, ctx.instantiation)
+	callContext := wazergo.NewCallContext(ctx.context, ctx.instantiation)
 	return moduleInstance.ExportedFunction(cmd.Entrypoint).Call(callContext, cmd.Params...)
 }

@@ -1,4 +1,4 @@
-module github.com/stealthrocket/wasm-go
+module github.com/stealthrocket/wazergo
 
 go 1.20
 

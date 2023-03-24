@@ -3,11 +3,12 @@ package wasmtest
 import (
 	"context"
 
-	"github.com/stealthrocket/wasm-go"
+	"github.com/stealthrocket/wazergo"
+	"github.com/stealthrocket/wazergo/types"
 	"github.com/tetratelabs/wazero/api"
 )
 
-func Call[R wasm.Param[R], T any](fn wasm.Function[T], ctx context.Context, module api.Module, this T, args ...wasm.Result) (ret R) {
+func Call[R types.Param[R], T any](fn wazergo.Function[T], ctx context.Context, module api.Module, this T, args ...types.Result) (ret R) {
 	malloc = 0
 
 	numParams := countValueTypes(fn.Params)
@@ -31,7 +32,7 @@ func Call[R wasm.Param[R], T any](fn wasm.Function[T], ctx context.Context, modu
 	return ret.LoadValue(memory, stack)
 }
 
-func countValueTypes(values []wasm.Value) (n int) {
+func countValueTypes(values []types.Value) (n int) {
 	for _, v := range values {
 		n += len(v.ValueTypes())
 	}
