@@ -12,7 +12,8 @@ such modules entirely in Go to provide extensions built into the host: those are
 called *host modules*.
 
 When defining host modules, the Go program declares the list of exported
-functions using one of these two APIs of the [`wazero.HostFunctionBuilder`](https://pkg.go.dev/github.com/tetratelabs/wazero#HostFunctionBuilder):
+functions using one of these two APIs of the
+[`wazero.HostFunctionBuilder`](https://pkg.go.dev/github.com/tetratelabs/wazero#HostFunctionBuilder):
 
 ```go
 // WithGoModuleFunction is an advanced feature for those who need higher
@@ -82,15 +83,15 @@ achieve these goals, and this repository is the outcome of that experiment.
 ## Usage
 
 This package is intended to be used as a library to create host modules for
-wazero. The code is separated in two packages: the top level `wasm` package
-contains the type and functions used to build host modules, including the
-declaration of functions they export. The `types` subpackage contains the
-declaration of generic types representing integers, floats, pointers, arrays,
-etc...
+wazero. The code is separated in two packages: the top level [`wazergo`](wazergo)
+package contains the type and functions used to build host modules, including
+the declaration of functions they export. The [`types`](types) subpackage
+contains the declaration of generic types representing integers, floats,
+pointers, arrays, etc...
 
-Programs using the `types` package often import its symbols directly into their
-package name namespace(s), which helps declare the host module functions. For
-example:
+Programs using the [`types`](types) package often import its symbols directly
+into their package name namespace(s), which helps declare the host module
+functions. For example:
 
 ```go
 import (
@@ -108,9 +109,9 @@ func (m *Module) Answer(ctx context.Context) Int32 {
 ### Building Host Modules
 
 To construct a host module, the program must declare a type satisfying the
-`wasm.Module` interface, and construct a `wasm.HostModule[T]` of that type,
-along with the list of its exported functions. The following model is often
-useful:
+[`Module`](Module) interface, and construct a [`HostModule&#91;T&#93;`](HostModule)
+of that type, along with the list of its exported functions. The following model
+is often useful:
 
 ```go
 package my_host_module
@@ -120,20 +121,20 @@ import (
 )
 
 // Declare the host module from a set of exported functions.
-var HostModule wasm.HostModule[*Module] = functions{
+var HostModule waszero.HostModule[*Module] = functions{
     ...
 }
 
-// The `functions` type impements `wasm.HostModule[*Module]`, providing the
+// The `functions` type impements `HostModule[*Module]`, providing the
 // module name, map of exported functions, and the ability to create instances
 // of the module type.
-type functions wasm.Functions[*Module]
+type functions waszergo.Functions[*Module]
 
 func (f functions) Name() string {
     return "my_host_module"
 }
 
-func (f functions) Functions() wasm.Functions[*Module] {
+func (f functions) Functions() waszergo.Functions[*Module] {
     return (wasm.Functions[*Module])(f)
 }
 
@@ -141,7 +142,7 @@ func (f functions) Instantiate(opts ...Option) *Module {
     return NewModule(opts...)
 }
 
-type Option = wasm.Option[*Module]
+type Option = wazergo.Option[*Module]
 
 // Module will be the Go type we use to maintain the state of our module
 // instances.
@@ -157,22 +158,23 @@ func NewModule(opts ...Option) *Module {
 There are a few concepts of the library that we are getting exposed to in this
 example:
 
-- `wasm.HostModule[T]` is an interface parametrized on the type of our module
-  instances. This interface is the bridge between the library and the wazero
-  APIs.
+- [`HostModule&#91;T&#93;`](HostModule) is an interface parametrized on the type
+  of our module instances. This interface is the bridge between the library and
+  the wazero APIs.
 
-- `wasm.Functions[T]` is a map type parametrized on the module type,
-  it associates the exported function names to the method of the module type
-  that will be invoked when WebAssembly programs invoke them as imported
+- [`Functions&#91;T&#93;`](Functions) is a map type parametrized on the module
+  type, it associates the exported function names to the method of the module
+  type that will be invoked when WebAssembly programs invoke them as imported
   symbols.
 
-- `wasm.Option[T]` is an interface type parameterized on the module type and
-  representing the configuration options available on the module. It is common
-  for the package to declare options using function constructors, for example:
+- [`Optional&#91;T&#93;`](Optional) is an interface type parameterized on the
+  module type and representing the configuration options available on the
+  module. It is common for the package to declare options using function
+  constructors, for example:
 
   ```go
   func CustomValue(value int) Option {
-    return wasm.OptionFunc(func(m *Module) { ... })
+    return wazergo.OptionFunc(func(m *Module) { ... })
   }
   ```
 
@@ -190,13 +192,13 @@ employed to define parameters and return values.
 package my_host_module
 
 import (
-    "github.com/stealthrocket/wazergo"
+    . "github.com/stealthrocket/wazergo"
     . "github.com/stealthrocket/wazergo/types"
 )
 
-var HostModule wasm.HostModule[*Module] = functions{
-    "answer": wasm.F0((*Module).Answer),
-    "double": wasm.F1((*Module).Double),
+var HostModule HostModule[*Module] = functions{
+    "answer": F0((*Module).Answer),
+    "double": F1((*Module).Double),
 }
 
 ...
@@ -210,39 +212,96 @@ func (m *Module) Double(ctx context.Context, f Float32) Float32 {
 }
 ```
 
-- Exported methods of a host module must always start with a `context.Context`
-  parameter.
+- Exported methods of a host module must always start with a
+  [`context.Context`](context) parameter.
 
-- The parameters and return values must satisfy `wasm.Param[T]` and `wasm.Result`
-  interfaces. The `types` subpackage contains types that do, but the application
-  can construct its own for more advanced use cases (e.g. struct types).
+- The parameters and return values must satisfy [`Param&#91;T&#93;`](Param) and
+  [`Result`](Result) interfaces. The [`types`](types) subpackage contains types
+  that do, but the application can construct its own for more advanced use
+  cases (e.g. struct types).
 
-- When constructing the `wasm.Functions[T]` map, the program must use one of the
-  `wasm.F{n}` generics constructors to create a `wasm.Function[T]` value from
-  methods of the module. The program must use a function constructor matching
-  the number of parameter to the method (e.g. `wasm.F2` if there are two
-  parameters, not including the context).
+- When constructing the [`Functions&#91;T&#93;`](Functions) map, the program
+  must use one of the [`F{n}`](F) generics constructors to create a
+  [`Function&#91;T&#93;`](Function) value from methods of the module.
+  The program must use a function constructor matching the number of parameter
+  to the method (e.g. [`F2`](F2) if there are two parameters, not including the
+  context). The function constructors handle the conversion of Go function
+  signatures to WebAssembly function types using information about their generic
+  type parameters.
 
 - Methods of the module must have a single return value. For the common case of
   having to return either a value or an error (in which case the WebAssembly
-  function has two results), the generic `wasm.Optional[T]` type can be used,
-  or the application may declare its own result types.
+  function has two results), the generic [`Optional&#91;T&#93;`](Optional)
+  type can be used, or the application may declare its own result types.
 
 ### Composite Parameter Types
 
-_TODO_
+[`Array&#91;T&#93;`](Array) type is base generic type used to represent
+contiguous sequences of fixed-length primitive values such as integers and
+floats. Array values map to a pair of `i32` values for the memory offset and
+number of elements in the array. For example, the [`Bytes`](Bytes) type
+(equivalent to a Go `[]byte`) is expressed as `Array[byte]`.
+
+[`Param&#91;T&#93;`](Param) and [`Result`](Result) are the interfaces used
+as type constraints in generic type paramaeters
+
+To express sequences of non-primitive types, the generic [`List&#91;T&#93;`](List)
+type can represent lists of types implementing the [`Object&#91;T&#93;`](Object)
+interface. [`Object&#91;T&#93;`](Object) is used by types that can be loaded from,
+or stored to the module memory.
 
 ### Memory Safety
 
-_TODO_
+Memory safety is guaranteed both by the use of wazero's `Memory` type, and
+triggering a panic with a value of type [`SEGFAULT`](SEGFAULT) if the program
+attempts to access a memory address outside of its own linear memory.
+
+The panic effectively interrupts the program flow at the call site of the host
+function, and is turned into an error by wazero so the host application can
+safely handle the module termination.
 
 ### Type Safety
 
-_TODO_
+Type safety is guaranteed by the package at multiple levels.
+
+Due to the use of generics, the compiler is able to verify that the host module
+constructed by the program is semantically correct. For example, the compiler
+will refuse to create a host function where one of the return value is a type
+which does not implement the [`Result`](Result) interface.
+
+Runtime validation is then added by wazero when mapping module imports to ensure
+that the low level WebAssembly signatures of the imports match with those of the
+host module.
 
 ### Context Propagation
 
-_TODO_
+Calls to the host functions of a module require injecting the context in which
+the host module was instantiated into the context in which the exported functions
+of a module instante that depend on it are called (e.g. binding of the method
+receiver to the calls to carry state across invocations).
+
+This is currently done using an [`InstantiationContext`](InstantiationContext),
+which acts as a container for instantiated host modules. The following example
+shows how to leverage it:
+
+```go
+instantiation := wazergo.NewInstantiationContext(ctx, runtime)
+...
+// When invoking exported functions of a module; this may also be done
+// automatically via calls to wazero.Runtime.InstantiateModule which
+// invoke the start function(s).
+ctx = wasm.NewCallContext(ctx, instantiation)
+
+start := module.ExportedFunction("_start")
+r, err := start.Call(ctx)
+if err != nil {
+	...
+}
+```
+
+_Note: this part of the wazergo package is the most experiemental and might be
+changed based on user feedback and experience using the library. Any changes will
+aim at simplifying use the package._
 
 ## Contributing
 
@@ -255,3 +314,20 @@ Pull requests are welcome! Anything that is not a simple fix would probably
 benefit from being discussed in an issue first.
 
 Remember to be respectful and open minded!
+
+[context](https://pkg.go.dev/context#Context)
+[F](https://pkg.go.dev/stealthrocket/wazergo#F0)
+[F2](https://pkg.go.dev/stealthrocket/wazergo#F2)
+[Function](https://pkg.go.dev/stealthrocket/wazergo#Function)
+[Functions](https://pkg.go.dev/stealthrocket/wazergo#Functions)
+[HostModule](https://pkg.go.dev/stealthrocket/wazergo#HostModule)
+[Module](https://pkg.go.dev/stealthrocket/wazergo#Module)
+[Optional](https://pkg.go.dev/stealthrocket/wazergo/types#Optional)
+[Array](https://pkg.go.dev/stealthrocket/wazergo/types#Array)
+[Bytes](https://pkg.go.dev/stealthrocket/wazergo/types#Bytes)
+[Object](https://pkg.go.dev/stealthrocket/wazergo/types#Object)
+[Param](https://pkg.go.dev/stealthrocket/wazergo/types#Param)
+[types](https://pkg.go.dev/stealthrocket/wazergo/types)
+[wazergo](https://pkg.go.dev/stealthrocket/wazergo)
+[SEGFAULT](https://pkg.go.dev/stealthrocket/wazergo#SEGFAULT)
+[InstantiationContext](https://pkg.go.dev/stealthrocket/wazergo#InstantiationContext)
