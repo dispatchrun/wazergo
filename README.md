@@ -221,7 +221,7 @@ func (m *Module) Double(ctx context.Context, f Float32) Float32 {
   cases (e.g. struct types).
 
 - When constructing the [`Functions[T]`][Functions] map, the program
-  must use one of the [`F{n}`][F] generics constructors to create a
+  must use one of the [`F*`][F] generics constructors to create a
   [`Function[T]`][Function] value from methods of the module.
   The program must use a function constructor matching the number of parameter
   to the method (e.g. [`F2`][F2] if there are two parameters, not including the
@@ -339,9 +339,11 @@ Remember to be respectful and open minded!
 [Module]: https://pkg.go.dev/github.com/stealthrocket/wazergo#Module
 [Optional]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Optional
 [Array]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Array
+[List]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#List
 [Bytes]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Bytes
 [Object]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Object
 [Param]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Param
+[Result]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Param
 [types]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types
 [wazergo]: https://pkg.go.dev/github.com/stealthrocket/wazergo
 [SEGFAULT]: https://pkg.go.dev/github.com/stealthrocket/wazergo#SEGFAULT
