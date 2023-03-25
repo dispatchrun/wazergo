@@ -109,7 +109,7 @@ func (m *Module) Answer(ctx context.Context) Int32 {
 ### Building Host Modules
 
 To construct a host module, the program must declare a type satisfying the
-[`Module`](Module) interface, and construct a [`HostModule&#91;T&#93;`](HostModule)
+[`Module`](Module) interface, and construct a [`HostModule[T]`](HostModule)
 of that type, along with the list of its exported functions. The following model
 is often useful:
 
@@ -158,16 +158,16 @@ func NewModule(opts ...Option) *Module {
 There are a few concepts of the library that we are getting exposed to in this
 example:
 
-- [`HostModule&#91;T&#93;`](HostModule) is an interface parametrized on the type
+- [`HostModule[T]`](HostModule) is an interface parametrized on the type
   of our module instances. This interface is the bridge between the library and
   the wazero APIs.
 
-- [`Functions&#91;T&#93;`](Functions) is a map type parametrized on the module
+- [`Functions[T]`](Functions) is a map type parametrized on the module
   type, it associates the exported function names to the method of the module
   type that will be invoked when WebAssembly programs invoke them as imported
   symbols.
 
-- [`Optional&#91;T&#93;`](Optional) is an interface type parameterized on the
+- [`Optional[T]`](Optional) is an interface type parameterized on the
   module type and representing the configuration options available on the
   module. It is common for the package to declare options using function
   constructors, for example:
@@ -215,14 +215,14 @@ func (m *Module) Double(ctx context.Context, f Float32) Float32 {
 - Exported methods of a host module must always start with a
   [`context.Context`](context) parameter.
 
-- The parameters and return values must satisfy [`Param&#91;T&#93;`](Param) and
+- The parameters and return values must satisfy [`Param[T]`](Param) and
   [`Result`](Result) interfaces. The [`types`](types) subpackage contains types
   that do, but the application can construct its own for more advanced use
   cases (e.g. struct types).
 
-- When constructing the [`Functions&#91;T&#93;`](Functions) map, the program
+- When constructing the [`Functions[T]`](Functions) map, the program
   must use one of the [`F{n}`](F) generics constructors to create a
-  [`Function&#91;T&#93;`](Function) value from methods of the module.
+  [`Function[T]`](Function) value from methods of the module.
   The program must use a function constructor matching the number of parameter
   to the method (e.g. [`F2`](F2) if there are two parameters, not including the
   context). The function constructors handle the conversion of Go function
@@ -231,23 +231,23 @@ func (m *Module) Double(ctx context.Context, f Float32) Float32 {
 
 - Methods of the module must have a single return value. For the common case of
   having to return either a value or an error (in which case the WebAssembly
-  function has two results), the generic [`Optional&#91;T&#93;`](Optional)
+  function has two results), the generic [`Optional[T]`](Optional)
   type can be used, or the application may declare its own result types.
 
 ### Composite Parameter Types
 
-[`Array&#91;T&#93;`](Array) type is base generic type used to represent
+[`Array[T]`](Array) type is base generic type used to represent
 contiguous sequences of fixed-length primitive values such as integers and
 floats. Array values map to a pair of `i32` values for the memory offset and
 number of elements in the array. For example, the [`Bytes`](Bytes) type
 (equivalent to a Go `[]byte`) is expressed as `Array[byte]`.
 
-[`Param&#91;T&#93;`](Param) and [`Result`](Result) are the interfaces used
+[`Param[T]`](Param) and [`Result`](Result) are the interfaces used
 as type constraints in generic type paramaeters
 
-To express sequences of non-primitive types, the generic [`List&#91;T&#93;`](List)
-type can represent lists of types implementing the [`Object&#91;T&#93;`](Object)
-interface. [`Object&#91;T&#93;`](Object) is used by types that can be loaded from,
+To express sequences of non-primitive types, the generic [`List[T]`](List)
+type can represent lists of types implementing the [`Object[T]`](Object)
+interface. [`Object[T]`](Object) is used by types that can be loaded from,
 or stored to the module memory.
 
 ### Memory Safety
