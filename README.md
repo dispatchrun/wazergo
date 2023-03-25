@@ -273,7 +273,7 @@ Runtime validation is then added by wazero when mapping module imports to ensure
 that the low level WebAssembly signatures of the imports match with those of the
 host module.
 
-### Context Propagation
+### Host Module Instantiation
 
 Calls to the host functions of a module require injecting the context in which
 the host module was instantiated into the context in which the exported functions
@@ -285,8 +285,23 @@ which acts as a container for instantiated host modules. The following example
 shows how to leverage it:
 
 ```go
+runtime := wazero.NewRuntime(ctxS)
+defer runtime.Close(ctx)
+
+compilation := wazergo.NewCompilationContext(ctx, runtime)
+compiledModule, err := wazergo.Compile(compilation, my_host_module.HostModule)
+if err != nil {
+    ...
+}
+
 instantiation := wazergo.NewInstantiationContext(ctx, runtime)
+wazeroModule, err := wazergo.Instantiate(instantiation, compiledModule)
+if err != nil {
+    ...
+}
+
 ...
+
 // When invoking exported functions of a module; this may also be done
 // automatically via calls to wazero.Runtime.InstantiateModule which
 // invoke the start function(s).
