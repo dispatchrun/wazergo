@@ -316,18 +316,18 @@ benefit from being discussed in an issue first.
 Remember to be respectful and open minded!
 
 [context]: https://pkg.go.dev/context#Context
-[F]: https://pkg.go.dev/stealthrocket/wazergo#F0
-[F2]: https://pkg.go.dev/stealthrocket/wazergo#F2
-[Function]: https://pkg.go.dev/stealthrocket/wazergo#Function
-[Functions]: https://pkg.go.dev/stealthrocket/wazergo#Functions
-[HostModule]: https://pkg.go.dev/stealthrocket/wazergo#HostModule
-[Module]: https://pkg.go.dev/stealthrocket/wazergo#Module
-[Optional]: https://pkg.go.dev/stealthrocket/wazergo/types#Optional
-[Array]: https://pkg.go.dev/stealthrocket/wazergo/types#Array
-[Bytes]: https://pkg.go.dev/stealthrocket/wazergo/types#Bytes
-[Object]: https://pkg.go.dev/stealthrocket/wazergo/types#Object
-[Param]: https://pkg.go.dev/stealthrocket/wazergo/types#Param
-[types]: https://pkg.go.dev/stealthrocket/wazergo/types
-[wazergo]: https://pkg.go.dev/stealthrocket/wazergo
-[SEGFAULT]: https://pkg.go.dev/stealthrocket/wazergo#SEGFAULT
-[InstantiationContext]: https://pkg.go.dev/stealthrocket/wazergo#InstantiationContext
+[F]: https://pkg.go.dev/github.com/stealthrocket/wazergo#F0
+[F2]: https://pkg.go.dev/github.com/stealthrocket/wazergo#F2
+[Function]: https://pkg.go.dev/github.com/stealthrocket/wazergo#Function
+[Functions]: https://pkg.go.dev/github.com/stealthrocket/wazergo#Functions
+[HostModule]: https://pkg.go.dev/github.com/stealthrocket/wazergo#HostModule
+[Module]: https://pkg.go.dev/github.com/stealthrocket/wazergo#Module
+[Optional]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Optional
+[Array]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Array
+[Bytes]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Bytes
+[Object]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Object
+[Param]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types#Param
+[types]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types
+[wazergo]: https://pkg.go.dev/github.com/stealthrocket/wazergo
+[SEGFAULT]: https://pkg.go.dev/github.com/stealthrocket/wazergo#SEGFAULT
+[InstantiationContext]: https://pkg.go.dev/github.com/stealthrocket/wazergo#InstantiationContext
