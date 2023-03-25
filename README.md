@@ -83,13 +83,13 @@ achieve these goals, and this repository is the outcome of that experiment.
 ## Usage
 
 This package is intended to be used as a library to create host modules for
-wazero. The code is separated in two packages: the top level [`wazergo`](wazergo)
+wazero. The code is separated in two packages: the top level [`wazergo`][wazergo]
 package contains the type and functions used to build host modules, including
-the declaration of functions they export. The [`types`](types) subpackage
+the declaration of functions they export. The [`types`][types] subpackage
 contains the declaration of generic types representing integers, floats,
 pointers, arrays, etc...
 
-Programs using the [`types`](types) package often import its symbols directly
+Programs using the [`types`][types] package often import its symbols directly
 into their package name namespace(s), which helps declare the host module
 functions. For example:
 
@@ -109,7 +109,7 @@ func (m *Module) Answer(ctx context.Context) Int32 {
 ### Building Host Modules
 
 To construct a host module, the program must declare a type satisfying the
-[`Module`](Module) interface, and construct a [`HostModule[T]`](HostModule)
+[`Module`][Module] interface, and construct a [`HostModule[T]`][HostModule]
 of that type, along with the list of its exported functions. The following model
 is often useful:
 
@@ -158,16 +158,16 @@ func NewModule(opts ...Option) *Module {
 There are a few concepts of the library that we are getting exposed to in this
 example:
 
-- [`HostModule[T]`](HostModule) is an interface parametrized on the type
+- [`HostModule[T]`][HostModule] is an interface parametrized on the type
   of our module instances. This interface is the bridge between the library and
   the wazero APIs.
 
-- [`Functions[T]`](Functions) is a map type parametrized on the module
+- [`Functions[T]`][Functions] is a map type parametrized on the module
   type, it associates the exported function names to the method of the module
   type that will be invoked when WebAssembly programs invoke them as imported
   symbols.
 
-- [`Optional[T]`](Optional) is an interface type parameterized on the
+- [`Optional[T]`][Optional] is an interface type parameterized on the
   module type and representing the configuration options available on the
   module. It is common for the package to declare options using function
   constructors, for example:
@@ -213,47 +213,47 @@ func (m *Module) Double(ctx context.Context, f Float32) Float32 {
 ```
 
 - Exported methods of a host module must always start with a
-  [`context.Context`](context) parameter.
+  [`context.Context`][context] parameter.
 
-- The parameters and return values must satisfy [`Param[T]`](Param) and
-  [`Result`](Result) interfaces. The [`types`](types) subpackage contains types
+- The parameters and return values must satisfy [`Param[T]`][Param] and
+  [`Result`][Result] interfaces. The [`types`][types] subpackage contains types
   that do, but the application can construct its own for more advanced use
   cases (e.g. struct types).
 
-- When constructing the [`Functions[T]`](Functions) map, the program
-  must use one of the [`F{n}`](F) generics constructors to create a
-  [`Function[T]`](Function) value from methods of the module.
+- When constructing the [`Functions[T]`][Functions] map, the program
+  must use one of the [`F{n}`][F] generics constructors to create a
+  [`Function[T]`][Function] value from methods of the module.
   The program must use a function constructor matching the number of parameter
-  to the method (e.g. [`F2`](F2) if there are two parameters, not including the
+  to the method (e.g. [`F2`][F2] if there are two parameters, not including the
   context). The function constructors handle the conversion of Go function
   signatures to WebAssembly function types using information about their generic
   type parameters.
 
 - Methods of the module must have a single return value. For the common case of
   having to return either a value or an error (in which case the WebAssembly
-  function has two results), the generic [`Optional[T]`](Optional)
+  function has two results), the generic [`Optional[T]`][Optional]
   type can be used, or the application may declare its own result types.
 
 ### Composite Parameter Types
 
-[`Array[T]`](Array) type is base generic type used to represent
+[`Array[T]`][Array] type is base generic type used to represent
 contiguous sequences of fixed-length primitive values such as integers and
 floats. Array values map to a pair of `i32` values for the memory offset and
-number of elements in the array. For example, the [`Bytes`](Bytes) type
+number of elements in the array. For example, the [`Bytes`][Bytes] type
 (equivalent to a Go `[]byte`) is expressed as `Array[byte]`.
 
-[`Param[T]`](Param) and [`Result`](Result) are the interfaces used
+[`Param[T]`][Param] and [`Result`][Result] are the interfaces used
 as type constraints in generic type paramaeters
 
-To express sequences of non-primitive types, the generic [`List[T]`](List)
-type can represent lists of types implementing the [`Object[T]`](Object)
-interface. [`Object[T]`](Object) is used by types that can be loaded from,
+To express sequences of non-primitive types, the generic [`List[T]`][List]
+type can represent lists of types implementing the [`Object[T]`][Object]
+interface. [`Object[T]`][Object] is used by types that can be loaded from,
 or stored to the module memory.
 
 ### Memory Safety
 
 Memory safety is guaranteed both by the use of wazero's `Memory` type, and
-triggering a panic with a value of type [`SEGFAULT`](SEGFAULT) if the program
+triggering a panic with a value of type [`SEGFAULT`][SEGFAULT] if the program
 attempts to access a memory address outside of its own linear memory.
 
 The panic effectively interrupts the program flow at the call site of the host
@@ -267,7 +267,7 @@ Type safety is guaranteed by the package at multiple levels.
 Due to the use of generics, the compiler is able to verify that the host module
 constructed by the program is semantically correct. For example, the compiler
 will refuse to create a host function where one of the return value is a type
-which does not implement the [`Result`](Result) interface.
+which does not implement the [`Result`][Result] interface.
 
 Runtime validation is then added by wazero when mapping module imports to ensure
 that the low level WebAssembly signatures of the imports match with those of the
@@ -280,7 +280,7 @@ the host module was instantiated into the context in which the exported function
 of a module instante that depend on it are called (e.g. binding of the method
 receiver to the calls to carry state across invocations).
 
-This is currently done using an [`InstantiationContext`](InstantiationContext),
+This is currently done using an [`InstantiationContext`][InstantiationContext],
 which acts as a container for instantiated host modules. The following example
 shows how to leverage it:
 
