@@ -295,7 +295,7 @@ if err != nil {
 }
 
 instantiation := wazergo.NewInstantiationContext(ctx, runtime)
-wazeroModule, err := wazergo.Instantiate(instantiation, compiledModule)
+_, err := wazergo.Instantiate(instantiation, compiledModule)
 if err != nil {
     ...
 }
