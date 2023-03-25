@@ -135,7 +135,7 @@ func (f functions) Name() string {
 }
 
 func (f functions) Functions() waszergo.Functions[*Module] {
-    return (wasm.Functions[*Module])(f)
+    return (wazergo.Functions[*Module])(f)
 }
 
 func (f functions) Instantiate(opts ...Option) *Module {
@@ -305,7 +305,7 @@ if err != nil {
 // When invoking exported functions of a module; this may also be done
 // automatically via calls to wazero.Runtime.InstantiateModule which
 // invoke the start function(s).
-ctx = wasm.NewCallContext(ctx, instantiation)
+ctx = wazergo.NewCallContext(ctx, instantiation)
 
 start := module.ExportedFunction("_start")
 r, err := start.Call(ctx)

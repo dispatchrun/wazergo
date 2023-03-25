@@ -228,13 +228,13 @@ func (m *moduleInstance[T]) CloseWithExitCode(ctx context.Context, exitCode uint
 //
 //	// The program first creates the instantiation context and uses it to
 //	// instantiate compiled host module (not shown here).
-//	instiation := wasm.NewInstantiationContext(...)
+//	instiation := wazergo.NewInstantiationContext(...)
 //
 //	...
 //
 //	// In this example the parent is the background context, but it might be any
 //	// other Go context relevant to the application.
-//	ctx = wasm.NewCallContext(context.Background(), instantiation)
+//	ctx = wazergo.NewCallContext(context.Background(), instantiation)
 //
 //	start := module.ExportedFunction("_start")
 //	r, err := start.Call(ctx)
