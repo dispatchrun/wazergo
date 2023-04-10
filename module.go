@@ -164,5 +164,5 @@ func MustInstantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod 
 //		...
 //	}
 func WithModuleInstance[T Module](ctx context.Context, ins *ModuleInstance[T]) context.Context {
-	return context.WithValue(ctx, (*ModuleInstance[T])(nil), ins)
+	return context.WithValue(ctx, (*ModuleInstance[T])(nil), ins.instance)
 }
