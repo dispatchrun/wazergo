@@ -11,6 +11,9 @@ func TestLoadAndStoreValue(t *testing.T) {
 	testLoadAndStoreValue(t, None{})
 	testLoadAndStoreValue(t, OK)
 
+	testLoadAndStoreValue(t, Bool(false))
+	testLoadAndStoreValue(t, Bool(true))
+
 	testLoadAndStoreValue(t, Int8(-1))
 	testLoadAndStoreValue(t, Int16(-2))
 	testLoadAndStoreValue(t, Int32(-3))
@@ -23,6 +26,9 @@ func TestLoadAndStoreValue(t *testing.T) {
 
 	testLoadAndStoreValue(t, Float32(0.1))
 	testLoadAndStoreValue(t, Float64(0.5))
+
+	testLoadAndStoreValue(t, Duration(0))
+	testLoadAndStoreValue(t, Duration(1e9))
 }
 
 func testLoadAndStoreValue[T ParamResult[T]](t *testing.T, value T) {
@@ -56,6 +62,9 @@ func testLoadAndStoreValue[T ParamResult[T]](t *testing.T, value T) {
 func TestLoadAndStoreObject(t *testing.T) {
 	testLoadAndStoreObject(t, None{})
 
+	testLoadAndStoreValue(t, Bool(false))
+	testLoadAndStoreValue(t, Bool(true))
+
 	testLoadAndStoreObject(t, Int8(-1))
 	testLoadAndStoreObject(t, Int16(-2))
 	testLoadAndStoreObject(t, Int32(-3))
@@ -68,6 +77,9 @@ func TestLoadAndStoreObject(t *testing.T) {
 
 	testLoadAndStoreObject(t, Float32(0.1))
 	testLoadAndStoreObject(t, Float64(0.5))
+
+	testLoadAndStoreValue(t, Duration(0))
+	testLoadAndStoreValue(t, Duration(1e9))
 }
 
 func testLoadAndStoreObject[T Object[T]](t *testing.T, value T) {

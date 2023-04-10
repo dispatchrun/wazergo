@@ -8,6 +8,7 @@ import (
 	"math"
 	"strconv"
 	"syscall"
+	"time"
 	"unsafe"
 
 	"github.com/stealthrocket/wazergo/wasm"
@@ -529,6 +530,46 @@ func (arg Float64) ObjectSize() int {
 var (
 	_ Param[Float64] = Float64(0)
 	_ Result         = Float64(0)
+)
+
+type Duration time.Duration
+
+func (arg Duration) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
+	fmt.Fprintf(w, "%s", time.Duration(arg.LoadValue(memory, stack)))
+}
+
+func (arg Duration) FormatObject(w io.Writer, memory api.Memory, object []byte) {
+	fmt.Fprintf(w, "%s", time.Duration(arg.LoadObject(memory, object)))
+}
+
+func (arg Duration) LoadValue(memory api.Memory, stack []uint64) Duration {
+	return Duration(stack[0])
+}
+
+func (arg Duration) LoadObject(memory api.Memory, object []byte) Duration {
+	return Duration(binary.LittleEndian.Uint64(object))
+}
+
+func (arg Duration) StoreValue(memory api.Memory, stack []uint64) {
+	stack[0] = uint64(arg)
+}
+
+func (arg Duration) StoreObject(memory api.Memory, object []byte) {
+	binary.LittleEndian.PutUint64(object, uint64(arg))
+}
+
+func (arg Duration) ValueTypes() []api.ValueType {
+	return []api.ValueType{api.ValueTypeI64}
+}
+
+func (arg Duration) ObjectSize() int {
+	return 8
+}
+
+var (
+	_ Object[Duration] = Duration(0)
+	_ Param[Duration]  = Duration(0)
+	_ Result           = Duration(0)
 )
 
 type primitive interface {
