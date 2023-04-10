@@ -970,11 +970,16 @@ func (err Errno) Errno() int32 {
 
 // Error returns a human readable representation of err.
 func (err Errno) Error() string {
+	if i := int(err); i >= 0 && i < len(ErrorStrings) {
+		if s := ErrorStrings[i]; s != "" {
+			return s
+		}
+	}
 	return fmt.Sprintf("errno(%d)", err)
 }
 
 func (err Errno) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "errno(%d)", err.LoadValue(memory, stack))
+	io.WriteString(w, err.LoadValue(memory, stack).Error())
 }
 
 func (err Errno) LoadValue(memory api.Memory, stack []uint64) Errno {
@@ -992,6 +997,15 @@ func (err Errno) ValueTypes() []api.ValueType {
 var (
 	_ Param[Errno] = Errno(0)
 	_ Result       = Errno(0)
+
+	// ErrorStrings is a global used in the formatting of Errno values.
+	//
+	// The table is empty by default, but the program may assign a table indexed
+	// by error code to customize the error messages.
+	//
+	// There is no synchronization so it is recommended to assign this global
+	// during program initialization (e.g. in an init function).
+	ErrorStrings []string
 )
 
 func makeErrno(errno int32) error {
