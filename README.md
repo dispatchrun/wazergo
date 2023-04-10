@@ -139,7 +139,11 @@ func (f functions) Functions() wazergo.Functions[*Module] {
 }
 
 func (f functions) Instantiate(opts ...Option) *Module {
-    return NewModule(opts...)
+    mod := &Module{
+        ...
+    }
+    wazergo.Configure(mod, opts...)
+    return mod
 }
 
 type Option = wazergo.Option[*Module]
@@ -147,10 +151,6 @@ type Option = wazergo.Option[*Module]
 // Module will be the Go type we use to maintain the state of our module
 // instances.
 type Module struct {
-    ...
-}
-
-func NewModule(opts ...Option) *Module {
     ...
 }
 ```
