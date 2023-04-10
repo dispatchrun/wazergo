@@ -2,17 +2,10 @@ package wazergo
 
 import (
 	"context"
-	"errors"
 
 	. "github.com/stealthrocket/wazergo/types"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
-)
-
-var (
-	// ErrNoRuntime is an error returned when attempting to compile a host
-	// module in a context which has no wazero runtime.
-	ErrNoRuntime = errors.New("compilation context contains no wazero runtime")
 )
 
 // Module is a type constraint used to validate that all module instances
@@ -34,7 +27,7 @@ type HostModule[T Module] interface {
 	// Creates a new instance of the host module type, using the list of options
 	// passed as arguments to configure it. This method is intended to be called
 	// automatically when instantiating a module via an instantiation context.
-	Instantiate(...Option[T]) T
+	Instantiate(ctx context.Context, options ...Option[T]) (T, error)
 }
 
 // Build builds the host module p in the wazero runtime r, returning the
@@ -42,17 +35,13 @@ type HostModule[T Module] interface {
 // which is only exposed for certain advanced use cases where a program might
 // not be able to leverage Compile/Instantiate, most application should not need
 // to use this function.
-func Build[T Module](runtime wazero.Runtime, mod HostModule[T], decorators ...Decorator[T]) wazero.HostModuleBuilder {
+func Build[T Module](runtime wazero.Runtime, mod HostModule[T]) wazero.HostModuleBuilder {
 	moduleName := mod.Name()
 	builder := runtime.NewHostModuleBuilder(moduleName)
 
 	for export, fn := range mod.Functions() {
 		if fn.Name == "" {
 			fn.Name = export
-		}
-
-		for _, d := range decorators {
-			fn = d.Decorate(moduleName, fn)
 		}
 
 		paramTypes := concatValueTypes(fn.Params)
@@ -86,8 +75,7 @@ func bind[T Module](f func(T, context.Context, api.Module, []uint64)) api.GoModu
 type contextualizedGoModuleFunction[T Module] func(T, context.Context, api.Module, []uint64)
 
 func (f contextualizedGoModuleFunction[T]) Call(ctx context.Context, module api.Module, stack []uint64) {
-	modules := ctx.Value(modulesKey{}).(modules)
-	this := modules[contextKey[T]{}].(T)
+	this := ctx.Value((*ModuleInstance[T])(nil)).(T)
 	f(this, ctx, module, stack)
 }
 
@@ -95,168 +83,86 @@ func (f contextualizedGoModuleFunction[T]) Call(ctx context.Context, module api.
 type CompiledModule[T Module] struct {
 	HostModule HostModule[T]
 	wazero.CompiledModule
-}
-
-// CompilationContext is a type carrying the state needed to perform the
-// compilation of wazero host modules.
-type CompilationContext struct {
-	context context.Context
+	// The compiled module captures the runtime that it was compiled for since
+	// instantiation of the host module must happen in the same runtime.
+	// This prevents application from having to pass the runtime again when
+	// instantiating the module, which is redundant and sometimes error prone
+	// (e.g. the wrong runtime could be used during instantiation).
 	runtime wazero.Runtime
-}
-
-// NewCompilationContext constructs a new wazero host module compilation
-// context. The newly created instance captures the context and wazero
-// runtime passed as arguments.
-func NewCompilationContext(ctx context.Context, rt wazero.Runtime) *CompilationContext {
-	return &CompilationContext{
-		context: ctx,
-		runtime: rt,
-	}
-}
-
-// Close closes the compilation context, making it unusable to the program.
-func (ctx *CompilationContext) Close(context.Context) error {
-	ctx.context = nil
-	ctx.runtime = nil
-	return nil
 }
 
 // Compile compiles a wazero host module within the given context.
-func Compile[T Module](ctx *CompilationContext, mod HostModule[T], decorators ...Decorator[T]) (*CompiledModule[T], error) {
-	if ctx.runtime == nil {
-		return nil, ErrNoRuntime
-	}
-	compiledModule, err := Build(ctx.runtime, mod, decorators...).Compile(ctx.context)
+func Compile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T]) (*CompiledModule[T], error) {
+	compiledModule, err := Build(runtime, mod).Compile(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return &CompiledModule[T]{mod, compiledModule}, nil
+	return &CompiledModule[T]{mod, compiledModule, runtime}, nil
 }
 
-// InstantiationContext is a type carrying the state of instantiated wazero
-// host modules. This context must be used to create call contexts to invoke
-// exported functions of WebAssembly modules (see NewCallContext).
-type InstantiationContext struct {
-	context context.Context
-	runtime wazero.Runtime
-	modules modules
-}
-
-// NewInstantiationContext creates a new wazero host module instantiation
-// context.
-func NewInstantiationContext(ctx context.Context, rt wazero.Runtime) *InstantiationContext {
-	return &InstantiationContext{
-		context: ctx,
-		runtime: rt,
-		modules: make(modules),
-	}
-}
-
-// Close closes the instantiation context, making it unusable to the program.
-//
-// Closing the context alos closes all modules that were instantiated from it
-// and implement the io.Closer interface.
-func (ins *InstantiationContext) Close(ctx context.Context) error {
-	for _, mod := range ins.modules {
-		mod.Close(ctx)
-	}
-	ins.context = nil
-	ins.runtime = nil
-	ins.modules = nil
-	return nil
-}
-
-// Instantiate creates an module instance for the given compiled wazero host
-// module. The list of options is used to pass configuration to the module
-// instance.
-//
-// The function returns the wazero module instance that was created from the
-// underlying compiled module. The returned module is bound to the instantiation
-// context. If the module is closed, its state is automatically removed from the
-// parent context, as well as removed from the parent wazero runtime like any
-// other module instance closed by the application.
-func Instantiate[T Module](ctx *InstantiationContext, compiled *CompiledModule[T], opts ...Option[T]) (api.Module, error) {
-	if ctx.runtime == nil {
-		return nil, ErrNoRuntime
-	}
-	instance := compiled.HostModule.Instantiate(opts...)
-	ctx.modules[contextKey[T]{}] = instance
-	callContext := NewCallContext(ctx.context, ctx)
-	module, err := ctx.runtime.InstantiateModule(callContext, compiled.CompiledModule, wazero.NewModuleConfig().
-		WithStartFunctions(), // TODO: is it OK not to run _start for library-style modules?
-	)
+// Instantiate creates an instance of the compiled module for in the given runtime
+func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T]) (*ModuleInstance[T], error) {
+	config := wazero.NewModuleConfig().WithStartFunctions()
+	module, err := c.runtime.InstantiateModule(ctx, c.CompiledModule, config)
 	if err != nil {
 		return nil, err
 	}
-	return &moduleInstance[T]{module, instance, ctx.modules}, nil
+	instance, err := c.HostModule.Instantiate(ctx, options...)
+	if err != nil {
+		module.Close(ctx)
+		return nil, err
+	}
+	return &ModuleInstance[T]{module, instance}, nil
 }
 
-type contextKey[T any] struct{}
-
-type modules map[any]api.Closer
-
-type modulesKey struct{}
-
-type moduleInstance[T Module] struct {
+// ModuleInstance represents a module instance created from a compiled host module.
+type ModuleInstance[T Module] struct {
 	api.Module
 	instance T
-	modules  modules
 }
 
-func (m *moduleInstance[T]) close(ctx context.Context) {
-	delete(m.modules, contextKey[T]{})
-	m.modules = nil
-	m.instance.Close(ctx)
+// Instantiate compiles and instantiates a host module.
+func Instantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], options ...Option[T]) (*ModuleInstance[T], error) {
+	c, err := Compile[T](ctx, runtime, mod)
+	if err != nil {
+		return nil, err
+	}
+	return c.Instantiate(ctx, options...)
 }
 
-func (m *moduleInstance[T]) Close(ctx context.Context) error {
-	defer m.close(ctx)
-	return m.Module.Close(ctx)
+// MustInstantiate is like Instantiate but it panics if an error is encountered.
+func MustInstantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], options ...Option[T]) *ModuleInstance[T] {
+	instance, err := Instantiate(ctx, runtime, mod, options...)
+	if err != nil {
+		panic(err)
+	}
+	return instance
 }
 
-func (m *moduleInstance[T]) CloseWithExitCode(ctx context.Context, exitCode uint32) error {
-	defer m.close(ctx)
-	return m.Module.CloseWithExitCode(ctx, exitCode)
-}
-
-// NewCallContext returns a Go context inheriting from ctx and containing the
-// state needed for module instantiated from wazero host module to properly bind
-// their methods to their receiver (e.g. the module instance).
+// WithModuleInstance returns a Go context inheriting from ctx and containing
+// the state needed for module instantiated from wazero host module to properly
+// bind their methods to their receiver (e.g. the module instance).
 //
 // Use this function when calling methods of an instantiated WebAssenbly module
 // which may invoke exported functions of a wazero host module, for example:
 //
-//	// The program first creates the instantiation context and uses it to
-//	// instantiate compiled host module (not shown here).
-//	instiation := wazergo.NewInstantiationContext(...)
+//	// The program first creates the modules instances for the host modules.
+//	instance1 := wazergo.MustInstantiate(ctx, runtime, firstHostModule)
+//	instance2 := wazergo.MustInstantiate(ctx, runtime, otherHostModule)
 //
 //	...
 //
 //	// In this example the parent is the background context, but it might be any
 //	// other Go context relevant to the application.
-//	ctx = wazergo.NewCallContext(context.Background(), instantiation)
+//	ctx := context.Background()
+//	ctx = wazergo.WithModuleInstance(ctx, instance1)
+//	ctx = wazergo.WithModuleInstance(ctx, instance2)
 //
 //	start := module.ExportedFunction("_start")
 //	r, err := start.Call(ctx)
 //	if err != nil {
 //		...
 //	}
-func NewCallContext(ctx context.Context, ins *InstantiationContext) context.Context {
-	return context.WithValue(ctx, modulesKey{}, ins.modules)
-}
-
-// WithCallContext returns a Go context inheriting from ctx and containig the
-// necessary state to be used in calls to exported functions of the given wazero
-// host modul. This function is rarely used by applications, it is often more
-// useful in tests to setup the test state without constructing the entire
-// compilation and instantiation contexts (see NewCallContext instead).
-func WithCallContext[T Module](ctx context.Context, mod HostModule[T], opts ...Option[T]) (context.Context, func()) {
-	prev, _ := ctx.Value(modulesKey{}).(modules)
-	next := make(modules, len(prev)+1)
-	for k, v := range prev {
-		next[k] = v
-	}
-	instance := mod.Instantiate(opts...)
-	next[contextKey[T]{}] = instance
-	return context.WithValue(ctx, modulesKey{}, next), func() { instance.Close(ctx) }
+func WithModuleInstance[T Module](ctx context.Context, ins *ModuleInstance[T]) context.Context {
+	return context.WithValue(ctx, (*ModuleInstance[T])(nil), ins.instance)
 }

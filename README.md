@@ -134,12 +134,16 @@ func (f functions) Name() string {
     return "my_host_module"
 }
 
-func (f functions) Functions() waszergo.Functions[*Module] {
+func (f functions) Functions() wazergo.Functions[*Module] {
     return (wazergo.Functions[*Module])(f)
 }
 
-func (f functions) Instantiate(opts ...Option) *Module {
-    return NewModule(opts...)
+func (f functions) Instantiate(ctx context.Context, opts ...Option) (*Module, error) {
+    mod := &Module{
+        ...
+    }
+    wazergo.Configure(mod, opts...)
+    return mod, nil
 }
 
 type Option = wazergo.Option[*Module]
@@ -147,10 +151,6 @@ type Option = wazergo.Option[*Module]
 // Module will be the Go type we use to maintain the state of our module
 // instances.
 type Module struct {
-    ...
-}
-
-func NewModule(opts ...Option) *Module {
     ...
 }
 ```
@@ -280,32 +280,21 @@ the host module was instantiated into the context in which the exported function
 of a module instante that depend on it are called (e.g. binding of the method
 receiver to the calls to carry state across invocations).
 
-This is currently done using an [`InstantiationContext`][InstantiationContext],
-which acts as a container for instantiated host modules. The following example
-shows how to leverage it:
+This is done by injecting the host module instance into the context used when
+calling into a WebAssembly module.
 
 ```go
 runtime := wazero.NewRuntime(ctxS)
 defer runtime.Close(ctx)
 
-compilation := wazergo.NewCompilationContext(ctx, runtime)
-compiledModule, err := wazergo.Compile(compilation, my_host_module.HostModule)
-if err != nil {
-    ...
-}
-
-instantiation := wazergo.NewInstantiationContext(ctx, runtime)
-_, err := wazergo.Instantiate(instantiation, compiledModule)
-if err != nil {
-    ...
-}
+instance := wazergo.MustInstantiate(ctx, runtime, my_host_module.HostModule)
 
 ...
 
 // When invoking exported functions of a module; this may also be done
 // automatically via calls to wazero.Runtime.InstantiateModule which
 // invoke the start function(s).
-ctx = wazergo.NewCallContext(ctx, instantiation)
+ctx = wazergo.WithModuleInstance(ctx, instance)
 
 start := module.ExportedFunction("_start")
 r, err := start.Call(ctx)
@@ -313,10 +302,6 @@ if err != nil {
 	...
 }
 ```
-
-_Note: this part of the wazergo package is the most experiemental and might be
-changed based on user feedback and experience using the library. Any changes will
-aim at simplifying use the package._
 
 ## Contributing
 
@@ -347,4 +332,3 @@ Remember to be respectful and open minded!
 [types]: https://pkg.go.dev/github.com/stealthrocket/wazergo/types
 [wazergo]: https://pkg.go.dev/github.com/stealthrocket/wazergo
 [SEGFAULT]: https://pkg.go.dev/github.com/stealthrocket/wazergo#SEGFAULT
-[InstantiationContext]: https://pkg.go.dev/github.com/stealthrocket/wazergo#InstantiationContext

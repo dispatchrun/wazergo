@@ -245,6 +245,53 @@ var (
 	_ Result        = Int64(0)
 )
 
+type Bool bool
+
+func (arg Bool) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
+	fmt.Fprintf(w, "%t", arg.LoadValue(memory, stack))
+}
+
+func (arg Bool) FormatObject(w io.Writer, memory api.Memory, object []byte) {
+	fmt.Fprintf(w, "%t", arg.LoadObject(memory, object))
+}
+
+func (arg Bool) LoadValue(memory api.Memory, stack []uint64) Bool {
+	return Bool(api.DecodeU32(stack[0]) != 0)
+}
+
+func (arg Bool) LoadObject(memory api.Memory, object []byte) Bool {
+	return Bool(object[0] != 0)
+}
+
+func (arg Bool) StoreValue(memory api.Memory, stack []uint64) {
+	stack[0] = api.EncodeU32(uint32(arg.byte()))
+}
+
+func (arg Bool) StoreObject(memory api.Memory, object []byte) {
+	object[0] = arg.byte()
+}
+
+func (arg Bool) ValueTypes() []api.ValueType {
+	return []api.ValueType{api.ValueTypeI32}
+}
+
+func (arg Bool) ObjectSize() int {
+	return 1
+}
+
+func (arg Bool) byte() byte {
+	if arg {
+		return 1
+	}
+	return 0
+}
+
+var (
+	_ Object[Bool] = Bool(false)
+	_ Param[Bool]  = Bool(false)
+	_ Result       = Bool(false)
+)
+
 type Uint8 uint8
 
 func (arg Uint8) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
