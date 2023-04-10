@@ -964,10 +964,35 @@ func Fail(err error) Error { return Err[None](err) }
 type Errno int32
 
 // Errno returns err as an int32 value.
-func (err Errno) Errno() int32 { return int32(err) }
+func (err Errno) Errno() int32 {
+	return int32(err)
+}
 
 // Error returns a human readable representation of err.
-func (err Errno) Error() string { return fmt.Sprintf("errno(%d)", err) }
+func (err Errno) Error() string {
+	return fmt.Sprintf("errno(%d)", err)
+}
+
+func (err Errno) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
+	fmt.Fprintf(w, "errno(%d)", err.LoadValue(memory, stack))
+}
+
+func (err Errno) LoadValue(memory api.Memory, stack []uint64) Errno {
+	return Errno(api.DecodeI32(stack[0]))
+}
+
+func (err Errno) StoreValue(memory api.Memory, stack []uint64) {
+	stack[0] = api.EncodeI32(int32(err))
+}
+
+func (err Errno) ValueTypes() []api.ValueType {
+	return []api.ValueType{api.ValueTypeI32}
+}
+
+var (
+	_ Param[Errno] = Errno(0)
+	_ Result       = Errno(0)
+)
 
 func makeErrno(errno int32) error {
 	if errno == 0 {
