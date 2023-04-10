@@ -379,3 +379,323 @@ func F8[
 		},
 	}
 }
+
+// F9 is the Function constructor for functions accepting nine parameters.
+func F9[
+	T any,
+	P1 Param[P1],
+	P2 Param[P2],
+	P3 Param[P3],
+	P4 Param[P4],
+	P5 Param[P5],
+	P6 Param[P6],
+	P7 Param[P7],
+	P8 Param[P8],
+	P9 Param[P9],
+	R Result,
+](fn func(T, context.Context, P1, P2, P3, P4, P5, P6, P7, P8, P9) R) Function[T] {
+	var ret R
+	var arg1 P1
+	var arg2 P2
+	var arg3 P3
+	var arg4 P4
+	var arg5 P5
+	var arg6 P6
+	var arg7 P7
+	var arg8 P8
+	var arg9 P9
+	params1 := arg1.ValueTypes()
+	params2 := arg2.ValueTypes()
+	params3 := arg3.ValueTypes()
+	params4 := arg4.ValueTypes()
+	params5 := arg5.ValueTypes()
+	params6 := arg6.ValueTypes()
+	params7 := arg7.ValueTypes()
+	params8 := arg8.ValueTypes()
+	params9 := arg9.ValueTypes()
+	a := len(params1)
+	b := len(params2) + a
+	c := len(params3) + b
+	d := len(params4) + c
+	e := len(params5) + d
+	f := len(params6) + e
+	g := len(params7) + f
+	h := len(params8) + g
+	i := len(params9) + h
+	return Function[T]{
+		Params:  []Value{arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9},
+		Results: []Value{ret},
+		Func: func(this T, ctx context.Context, module api.Module, stack []uint64) {
+			var arg1 P1
+			var arg2 P2
+			var arg3 P3
+			var arg4 P4
+			var arg5 P5
+			var arg6 P6
+			var arg7 P7
+			var arg8 P8
+			var arg9 P9
+			var memory = module.Memory()
+			fn(this, ctx,
+				arg1.LoadValue(memory, stack[0:a:a]),
+				arg2.LoadValue(memory, stack[a:b:b]),
+				arg3.LoadValue(memory, stack[b:c:c]),
+				arg4.LoadValue(memory, stack[c:d:d]),
+				arg5.LoadValue(memory, stack[d:e:e]),
+				arg6.LoadValue(memory, stack[e:f:f]),
+				arg7.LoadValue(memory, stack[f:g:g]),
+				arg8.LoadValue(memory, stack[g:h:h]),
+				arg9.LoadValue(memory, stack[h:i:i]),
+			).StoreValue(memory, stack)
+		},
+	}
+}
+
+// F10 is the Function constructor for functions accepting ten parameters.
+func F10[
+	T any,
+	P1 Param[P1],
+	P2 Param[P2],
+	P3 Param[P3],
+	P4 Param[P4],
+	P5 Param[P5],
+	P6 Param[P6],
+	P7 Param[P7],
+	P8 Param[P8],
+	P9 Param[P9],
+	P10 Param[P10],
+	R Result,
+](fn func(T, context.Context, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) R) Function[T] {
+	var ret R
+	var arg1 P1
+	var arg2 P2
+	var arg3 P3
+	var arg4 P4
+	var arg5 P5
+	var arg6 P6
+	var arg7 P7
+	var arg8 P8
+	var arg9 P9
+	var arg10 P10
+	params1 := arg1.ValueTypes()
+	params2 := arg2.ValueTypes()
+	params3 := arg3.ValueTypes()
+	params4 := arg4.ValueTypes()
+	params5 := arg5.ValueTypes()
+	params6 := arg6.ValueTypes()
+	params7 := arg7.ValueTypes()
+	params8 := arg8.ValueTypes()
+	params9 := arg9.ValueTypes()
+	params10 := arg10.ValueTypes()
+	a := len(params1)
+	b := len(params2) + a
+	c := len(params3) + b
+	d := len(params4) + c
+	e := len(params5) + d
+	f := len(params6) + e
+	g := len(params7) + f
+	h := len(params8) + g
+	i := len(params9) + h
+	j := len(params10) + i
+	return Function[T]{
+		Params:  []Value{arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10},
+		Results: []Value{ret},
+		Func: func(this T, ctx context.Context, module api.Module, stack []uint64) {
+			var arg1 P1
+			var arg2 P2
+			var arg3 P3
+			var arg4 P4
+			var arg5 P5
+			var arg6 P6
+			var arg7 P7
+			var arg8 P8
+			var arg9 P9
+			var arg10 P10
+			var memory = module.Memory()
+			fn(this, ctx,
+				arg1.LoadValue(memory, stack[0:a:a]),
+				arg2.LoadValue(memory, stack[a:b:b]),
+				arg3.LoadValue(memory, stack[b:c:c]),
+				arg4.LoadValue(memory, stack[c:d:d]),
+				arg5.LoadValue(memory, stack[d:e:e]),
+				arg6.LoadValue(memory, stack[e:f:f]),
+				arg7.LoadValue(memory, stack[f:g:g]),
+				arg8.LoadValue(memory, stack[g:h:h]),
+				arg9.LoadValue(memory, stack[h:i:i]),
+				arg10.LoadValue(memory, stack[i:j:j]),
+			).StoreValue(memory, stack)
+		},
+	}
+}
+
+// F11 is the Function constructor for functions accepting eleven parameters.
+func F11[
+	T any,
+	P1 Param[P1],
+	P2 Param[P2],
+	P3 Param[P3],
+	P4 Param[P4],
+	P5 Param[P5],
+	P6 Param[P6],
+	P7 Param[P7],
+	P8 Param[P8],
+	P9 Param[P9],
+	P10 Param[P10],
+	P11 Param[P11],
+	R Result,
+](fn func(T, context.Context, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11) R) Function[T] {
+	var ret R
+	var arg1 P1
+	var arg2 P2
+	var arg3 P3
+	var arg4 P4
+	var arg5 P5
+	var arg6 P6
+	var arg7 P7
+	var arg8 P8
+	var arg9 P9
+	var arg10 P10
+	var arg11 P11
+	params1 := arg1.ValueTypes()
+	params2 := arg2.ValueTypes()
+	params3 := arg3.ValueTypes()
+	params4 := arg4.ValueTypes()
+	params5 := arg5.ValueTypes()
+	params6 := arg6.ValueTypes()
+	params7 := arg7.ValueTypes()
+	params8 := arg8.ValueTypes()
+	params9 := arg9.ValueTypes()
+	params10 := arg10.ValueTypes()
+	params11 := arg11.ValueTypes()
+	a := len(params1)
+	b := len(params2) + a
+	c := len(params3) + b
+	d := len(params4) + c
+	e := len(params5) + d
+	f := len(params6) + e
+	g := len(params7) + f
+	h := len(params8) + g
+	i := len(params9) + h
+	j := len(params10) + i
+	k := len(params11) + j
+	return Function[T]{
+		Params:  []Value{arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11},
+		Results: []Value{ret},
+		Func: func(this T, ctx context.Context, module api.Module, stack []uint64) {
+			var arg1 P1
+			var arg2 P2
+			var arg3 P3
+			var arg4 P4
+			var arg5 P5
+			var arg6 P6
+			var arg7 P7
+			var arg8 P8
+			var arg9 P9
+			var arg10 P10
+			var arg11 P11
+			var memory = module.Memory()
+			fn(this, ctx,
+				arg1.LoadValue(memory, stack[0:a:a]),
+				arg2.LoadValue(memory, stack[a:b:b]),
+				arg3.LoadValue(memory, stack[b:c:c]),
+				arg4.LoadValue(memory, stack[c:d:d]),
+				arg5.LoadValue(memory, stack[d:e:e]),
+				arg6.LoadValue(memory, stack[e:f:f]),
+				arg7.LoadValue(memory, stack[f:g:g]),
+				arg8.LoadValue(memory, stack[g:h:h]),
+				arg9.LoadValue(memory, stack[h:i:i]),
+				arg10.LoadValue(memory, stack[i:j:j]),
+				arg11.LoadValue(memory, stack[j:k:k]),
+			).StoreValue(memory, stack)
+		},
+	}
+}
+
+// F12 is the Function constructor for functions accepting twelve parameters.
+func F12[
+	T any,
+	P1 Param[P1],
+	P2 Param[P2],
+	P3 Param[P3],
+	P4 Param[P4],
+	P5 Param[P5],
+	P6 Param[P6],
+	P7 Param[P7],
+	P8 Param[P8],
+	P9 Param[P9],
+	P10 Param[P10],
+	P11 Param[P11],
+	P12 Param[P12],
+	R Result,
+](fn func(T, context.Context, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12) R) Function[T] {
+	var ret R
+	var arg1 P1
+	var arg2 P2
+	var arg3 P3
+	var arg4 P4
+	var arg5 P5
+	var arg6 P6
+	var arg7 P7
+	var arg8 P8
+	var arg9 P9
+	var arg10 P10
+	var arg11 P11
+	var arg12 P12
+	params1 := arg1.ValueTypes()
+	params2 := arg2.ValueTypes()
+	params3 := arg3.ValueTypes()
+	params4 := arg4.ValueTypes()
+	params5 := arg5.ValueTypes()
+	params6 := arg6.ValueTypes()
+	params7 := arg7.ValueTypes()
+	params8 := arg8.ValueTypes()
+	params9 := arg9.ValueTypes()
+	params10 := arg10.ValueTypes()
+	params11 := arg11.ValueTypes()
+	params12 := arg12.ValueTypes()
+	a := len(params1)
+	b := len(params2) + a
+	c := len(params3) + b
+	d := len(params4) + c
+	e := len(params5) + d
+	f := len(params6) + e
+	g := len(params7) + f
+	h := len(params8) + g
+	i := len(params9) + h
+	j := len(params10) + i
+	k := len(params11) + j
+	l := len(params12) + k
+	return Function[T]{
+		Params:  []Value{arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12},
+		Results: []Value{ret},
+		Func: func(this T, ctx context.Context, module api.Module, stack []uint64) {
+			var arg1 P1
+			var arg2 P2
+			var arg3 P3
+			var arg4 P4
+			var arg5 P5
+			var arg6 P6
+			var arg7 P7
+			var arg8 P8
+			var arg9 P9
+			var arg10 P10
+			var arg11 P11
+			var arg12 P12
+			var memory = module.Memory()
+			fn(this, ctx,
+				arg1.LoadValue(memory, stack[0:a:a]),
+				arg2.LoadValue(memory, stack[a:b:b]),
+				arg3.LoadValue(memory, stack[b:c:c]),
+				arg4.LoadValue(memory, stack[c:d:d]),
+				arg5.LoadValue(memory, stack[d:e:e]),
+				arg6.LoadValue(memory, stack[e:f:f]),
+				arg7.LoadValue(memory, stack[f:g:g]),
+				arg8.LoadValue(memory, stack[g:h:h]),
+				arg9.LoadValue(memory, stack[h:i:i]),
+				arg10.LoadValue(memory, stack[i:j:j]),
+				arg11.LoadValue(memory, stack[j:k:k]),
+				arg12.LoadValue(memory, stack[k:l:l]),
+			).StoreValue(memory, stack)
+		},
+	}
+}
