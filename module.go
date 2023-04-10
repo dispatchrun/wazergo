@@ -75,7 +75,7 @@ func bind[T Module](f func(T, context.Context, api.Module, []uint64)) api.GoModu
 type contextualizedGoModuleFunction[T Module] func(T, context.Context, api.Module, []uint64)
 
 func (f contextualizedGoModuleFunction[T]) Call(ctx context.Context, module api.Module, stack []uint64) {
-	this := ctx.Value((*Instance[T])(nil)).(T)
+	this := ctx.Value((*ModuleInstance[T])(nil)).(T)
 	f(this, ctx, module, stack)
 }
 
@@ -101,7 +101,7 @@ func Compile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModu
 }
 
 // Instantiate creates an instance of the compiled module for in the given runtime
-func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T]) (*Instance[T], error) {
+func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T]) (*ModuleInstance[T], error) {
 	config := wazero.NewModuleConfig().WithStartFunctions()
 	module, err := c.runtime.InstantiateModule(ctx, c.CompiledModule, config)
 	if err != nil {
@@ -112,17 +112,17 @@ func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T
 		module.Close(ctx)
 		return nil, err
 	}
-	return &Instance[T]{module, instance}, nil
+	return &ModuleInstance[T]{module, instance}, nil
 }
 
-// Instance represents a module instance created from a compiled host module.
-type Instance[T Module] struct {
+// ModuleInstance represents a module instance created from a compiled host module.
+type ModuleInstance[T Module] struct {
 	api.Module
 	instance T
 }
 
 // Instantiate compiles and instantiates a host module.
-func Instantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], options ...Option[T]) (*Instance[T], error) {
+func Instantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], options ...Option[T]) (*ModuleInstance[T], error) {
 	c, err := Compile[T](ctx, runtime, mod)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func Instantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod Host
 }
 
 // MustInstantiate is like Instantiate but it panics if an error is encountered.
-func MustInstantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], options ...Option[T]) *Instance[T] {
+func MustInstantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], options ...Option[T]) *ModuleInstance[T] {
 	instance, err := Instantiate(ctx, runtime, mod, options...)
 	if err != nil {
 		panic(err)
@@ -163,6 +163,6 @@ func MustInstantiate[T Module](ctx context.Context, runtime wazero.Runtime, mod 
 //	if err != nil {
 //		...
 //	}
-func WithModuleInstance[T Module](ctx context.Context, ins *Instance[T]) context.Context {
-	return context.WithValue(ctx, (*Instance[T])(nil), ins)
+func WithModuleInstance[T Module](ctx context.Context, ins *ModuleInstance[T]) context.Context {
+	return context.WithValue(ctx, (*ModuleInstance[T])(nil), ins)
 }
