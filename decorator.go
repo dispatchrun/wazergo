@@ -77,3 +77,38 @@ func formatValues(w io.Writer, memory api.Memory, stack []uint64, values []Value
 		stack = stack[len(v.ValueTypes()):]
 	}
 }
+
+// Decorate returns a version of the given host module where the decorators were
+// applied to all its functions.
+func Decorate[T Module](mod HostModule[T], decorators ...Decorator[T]) HostModule[T] {
+	functions := mod.Functions()
+	decorated := &decoratedHostModule[T]{
+		hostModule: mod,
+		functions:  make(Functions[T], len(functions)),
+	}
+	moduleName := mod.Name()
+	for name, function := range functions {
+		for _, decorator := range decorators {
+			function = decorator.Decorate(moduleName, function)
+		}
+		decorated.functions[name] = function
+	}
+	return decorated
+}
+
+type decoratedHostModule[T Module] struct {
+	hostModule HostModule[T]
+	functions  Functions[T]
+}
+
+func (m *decoratedHostModule[T]) Name() string {
+	return m.hostModule.Name()
+}
+
+func (m *decoratedHostModule[T]) Functions() Functions[T] {
+	return m.functions
+}
+
+func (m *decoratedHostModule[T]) Instantiate(ctx context.Context, options ...Option[T]) (T, error) {
+	return m.hostModule.Instantiate(ctx, options...)
+}

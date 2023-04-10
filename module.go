@@ -35,17 +35,13 @@ type HostModule[T Module] interface {
 // which is only exposed for certain advanced use cases where a program might
 // not be able to leverage Compile/Instantiate, most application should not need
 // to use this function.
-func Build[T Module](runtime wazero.Runtime, mod HostModule[T], decorators ...Decorator[T]) wazero.HostModuleBuilder {
+func Build[T Module](runtime wazero.Runtime, mod HostModule[T]) wazero.HostModuleBuilder {
 	moduleName := mod.Name()
 	builder := runtime.NewHostModuleBuilder(moduleName)
 
 	for export, fn := range mod.Functions() {
 		if fn.Name == "" {
 			fn.Name = export
-		}
-
-		for _, d := range decorators {
-			fn = d.Decorate(moduleName, fn)
 		}
 
 		paramTypes := concatValueTypes(fn.Params)
@@ -96,8 +92,8 @@ type CompiledModule[T Module] struct {
 }
 
 // Compile compiles a wazero host module within the given context.
-func Compile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], decorators ...Decorator[T]) (*CompiledModule[T], error) {
-	compiledModule, err := Build(runtime, mod, decorators...).Compile(ctx)
+func Compile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T]) (*CompiledModule[T], error) {
+	compiledModule, err := Build(runtime, mod).Compile(ctx)
 	if err != nil {
 		return nil, err
 	}
