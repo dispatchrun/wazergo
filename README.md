@@ -121,20 +121,20 @@ import (
 )
 
 // Declare the host module from a set of exported functions.
-var HostModule waszero.HostModule[*Module] = functions{
+var HostModule wazergo.HostModule[*Module] = functions{
     ...
 }
 
 // The `functions` type impements `HostModule[*Module]`, providing the
 // module name, map of exported functions, and the ability to create instances
 // of the module type.
-type functions waszergo.Functions[*Module]
+type functions wazergo.Functions[*Module]
 
 func (f functions) Name() string {
     return "my_host_module"
 }
 
-func (f functions) Functions() waszergo.Functions[*Module] {
+func (f functions) Functions() wazergo.Functions[*Module] {
     return (wazergo.Functions[*Module])(f)
 }
 
