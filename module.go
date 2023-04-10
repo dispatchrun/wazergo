@@ -2,17 +2,10 @@ package wazergo
 
 import (
 	"context"
-	"errors"
 
 	. "github.com/stealthrocket/wazergo/types"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
-)
-
-var (
-	// ErrNoRuntime is an error returned when attempting to compile a host
-	// module in a context which has no wazero runtime.
-	ErrNoRuntime = errors.New("compilation context contains no wazero runtime")
 )
 
 // Module is a type constraint used to validate that all module instances
@@ -97,36 +90,9 @@ type CompiledModule[T Module] struct {
 	wazero.CompiledModule
 }
 
-// CompilationContext is a type carrying the state needed to perform the
-// compilation of wazero host modules.
-type CompilationContext struct {
-	context context.Context
-	runtime wazero.Runtime
-}
-
-// NewCompilationContext constructs a new wazero host module compilation
-// context. The newly created instance captures the context and wazero
-// runtime passed as arguments.
-func NewCompilationContext(ctx context.Context, rt wazero.Runtime) *CompilationContext {
-	return &CompilationContext{
-		context: ctx,
-		runtime: rt,
-	}
-}
-
-// Close closes the compilation context, making it unusable to the program.
-func (ctx *CompilationContext) Close(context.Context) error {
-	ctx.context = nil
-	ctx.runtime = nil
-	return nil
-}
-
 // Compile compiles a wazero host module within the given context.
-func Compile[T Module](ctx *CompilationContext, mod HostModule[T], decorators ...Decorator[T]) (*CompiledModule[T], error) {
-	if ctx.runtime == nil {
-		return nil, ErrNoRuntime
-	}
-	compiledModule, err := Build(ctx.runtime, mod, decorators...).Compile(ctx.context)
+func Compile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T], decorators ...Decorator[T]) (*CompiledModule[T], error) {
+	compiledModule, err := Build(runtime, mod, decorators...).Compile(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -176,9 +142,6 @@ func (ins *InstantiationContext) Close(ctx context.Context) error {
 // parent context, as well as removed from the parent wazero runtime like any
 // other module instance closed by the application.
 func Instantiate[T Module](ctx *InstantiationContext, compiled *CompiledModule[T], opts ...Option[T]) (api.Module, error) {
-	if ctx.runtime == nil {
-		return nil, ErrNoRuntime
-	}
 	instance := compiled.HostModule.Instantiate(opts...)
 	ctx.modules[contextKey[T]{}] = instance
 	callContext := NewCallContext(ctx.context, ctx)

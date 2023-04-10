@@ -17,7 +17,6 @@ type Context struct {
 	context       context.Context
 	runtime       wazero.Runtime
 	logger        *log.Logger
-	compilation   *wazergo.CompilationContext
 	instantiation *wazergo.InstantiationContext
 }
 
@@ -27,20 +26,18 @@ func NewContext(ctx context.Context, logger *log.Logger) *Context {
 		context:       ctx,
 		runtime:       runtime,
 		logger:        logger,
-		compilation:   wazergo.NewCompilationContext(ctx, runtime),
 		instantiation: wazergo.NewInstantiationContext(ctx, runtime),
 	}
 }
 
 func (c *Context) Close() error {
 	c.instantiation.Close(c.context)
-	c.compilation.Close(c.context)
 	c.runtime.Close(c.context)
 	return nil
 }
 
 func Load[T wazergo.Module](ctx *Context, m wazergo.HostModule[T], opts ...wazergo.Option[T]) {
-	c, err := wazergo.Compile(ctx.compilation, m, wazergo.Log[T](ctx.logger))
+	c, err := wazergo.Compile(ctx.context, ctx.runtime, m, wazergo.Log[T](ctx.logger))
 	if err != nil {
 		panic(err)
 	}

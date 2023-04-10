@@ -288,8 +288,7 @@ shows how to leverage it:
 runtime := wazero.NewRuntime(ctxS)
 defer runtime.Close(ctx)
 
-compilation := wazergo.NewCompilationContext(ctx, runtime)
-compiledModule, err := wazergo.Compile(compilation, my_host_module.HostModule)
+compiledModule, err := wazergo.Compile(ctx, runtime, my_host_module.HostModule)
 if err != nil {
     ...
 }
