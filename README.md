@@ -153,6 +153,11 @@ type Option = wazergo.Option[*Module]
 type Module struct {
     ...
 }
+
+func (Module) Close(context.Context) error {
+    return nil
+}
+
 ```
 
 There are a few concepts of the library that we are getting exposed to in this
