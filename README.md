@@ -308,6 +308,27 @@ if err != nil {
 }
 ```
 
+The `_start` function may be called automatically when instantiating a wazero
+module, in which case the host module instance must be injected in the calling
+context.
+
+```go
+ctx = wazergo.WithModuleInstance(ctx, instance)
+
+_, err := runtime.InstantiateModule(ctx, compiledModule, moduleConfig)
+```
+
+Alternatively, the guest module instantiation may disabling calling `_start`
+automatically, so binding of the host module to the calling context can be
+deferred.
+
+```go
+_, err := runtime.InstantiateModule(ctx, compiledModule,
+    // disable calling _start during module instantiation
+    moduleConfig.WithStartFunctions(),
+)
+```
+
 ## Contributing
 
 No software is ever complete, and while there will be porbably be additions and
