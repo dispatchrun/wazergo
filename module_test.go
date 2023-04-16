@@ -58,6 +58,10 @@ func TestMultipleHostModuleInstances(t *testing.T) {
 	instance1 := wazergo.MustInstantiate(ctx, runtime, hostModule, answer(21))
 	instance2 := wazergo.MustInstantiate(ctx, runtime, hostModule, answer(42))
 
+	defer instance0.Close(ctx)
+	defer instance1.Close(ctx)
+	defer instance2.Close(ctx)
+
 	guest, err := loadModule(ctx, runtime, "testdata/answer.wasm")
 	if err != nil {
 		t.Fatal(err)

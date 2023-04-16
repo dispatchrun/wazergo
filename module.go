@@ -196,11 +196,12 @@ func (m *ModuleInstance[T]) ExportedGlobal(name string) api.Global {
 }
 
 func (m *ModuleInstance[T]) Close(ctx context.Context) error {
+	m.module = nil
 	return m.instance.Close(ctx)
 }
 
 func (m *ModuleInstance[T]) CloseWithExitCode(ctx context.Context, _ uint32) error {
-	return m.instance.Close(ctx)
+	return m.Close(ctx)
 }
 
 var (
