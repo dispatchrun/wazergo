@@ -66,6 +66,7 @@ func TestMultipleHostModuleInstances(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer guest.Close(ctx)
 
 	answer := guest.ExportedFunction("answer")
 	r0, _ := answer.Call(wazergo.WithModuleInstance(ctx, instance0))
