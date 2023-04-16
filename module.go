@@ -100,25 +100,124 @@ func Compile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModu
 	return &CompiledModule[T]{mod, compiledModule, runtime}, nil
 }
 
-// Instantiate creates an instance of the compiled module for in the given runtime
-func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T]) (*ModuleInstance[T], error) {
-	config := wazero.NewModuleConfig().WithStartFunctions()
-	module, err := c.runtime.InstantiateModule(ctx, c.CompiledModule, config)
+// MustCompile is like Compile but it panics if there is an error.
+func MustCompile[T Module](ctx context.Context, runtime wazero.Runtime, mod HostModule[T]) *CompiledModule[T] {
+	compiledModule, err := Compile(ctx, runtime, mod)
 	if err != nil {
-		return nil, err
+		panic(err)
+	}
+	return compiledModule
+}
+
+// Instantiate creates an instance of the compiled module for in the given runtime
+//
+// Instantiate may be called multiple times to create multiple copies of the host
+// module state. This is useful to allow the program to create scopes where the
+// state of the host module needs to bind uniquely to a subset of the guest
+// modules instantiated in the runtime.
+func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T]) (*ModuleInstance[T], error) {
+	// TODO: relying on the name here may be inaccurate, we are making the
+	// assumption that the program did not register a different module under
+	// the same name.
+	moduleName := c.HostModule.Name()
+	module := c.runtime.Module(moduleName)
+	if module == nil {
+		config := wazero.NewModuleConfig().WithStartFunctions()
+		m, err := c.runtime.InstantiateModule(ctx, c.CompiledModule, config)
+		if err != nil {
+			return nil, err
+		}
+		module = m
 	}
 	instance, err := c.HostModule.Instantiate(ctx, options...)
 	if err != nil {
-		module.Close(ctx)
 		return nil, err
 	}
-	return &ModuleInstance[T]{module, instance}, nil
+	return &ModuleInstance[T]{module, moduleName, instance}, nil
 }
 
 // ModuleInstance represents a module instance created from a compiled host module.
 type ModuleInstance[T Module] struct {
-	api.Module
-	instance T
+	module     api.Module
+	moduleName string
+	instance   T
+}
+
+func (m *ModuleInstance[T]) String() string {
+	return "module[" + m.moduleName + "]"
+}
+
+func (m *ModuleInstance[T]) Name() string {
+	return m.moduleName
+}
+
+func (m *ModuleInstance[T]) Memory() api.Memory {
+	if m.module != nil {
+		return m.module.Memory()
+	}
+	return nil
+}
+
+func (m *ModuleInstance[T]) ExportedFunction(name string) api.Function {
+	if m.module != nil {
+		if fn := m.module.ExportedFunction(name); fn != nil {
+			return &moduleInstanceFunction[T]{fn, m}
+		}
+	}
+	return nil
+}
+
+func (m *ModuleInstance[T]) ExportedFunctionDefinitions() map[string]api.FunctionDefinition {
+	if m.module != nil {
+		return m.module.ExportedFunctionDefinitions()
+	}
+	return nil
+}
+
+func (m *ModuleInstance[T]) ExportedMemory(name string) api.Memory {
+	if m.module != nil {
+		return m.module.ExportedMemory(name)
+	}
+	return nil
+}
+
+func (m *ModuleInstance[T]) ExportedMemoryDefinitions() map[string]api.MemoryDefinition {
+	if m.module != nil {
+		return m.module.ExportedMemoryDefinitions()
+	}
+	return nil
+}
+
+func (m *ModuleInstance[T]) ExportedGlobal(name string) api.Global {
+	if m.module != nil {
+		return m.module.ExportedGlobal(name)
+	}
+	return nil
+}
+
+func (m *ModuleInstance[T]) Close(ctx context.Context) error {
+	return m.instance.Close(ctx)
+}
+
+func (m *ModuleInstance[T]) CloseWithExitCode(ctx context.Context, _ uint32) error {
+	return m.instance.Close(ctx)
+}
+
+var (
+	_ api.Module = (*ModuleInstance[Module])(nil)
+)
+
+type moduleInstanceFunction[T Module] struct {
+	function api.Function
+	instance *ModuleInstance[T]
+}
+
+func (f *moduleInstanceFunction[T]) Definition() api.FunctionDefinition {
+	return f.function.Definition()
+}
+
+func (f *moduleInstanceFunction[T]) Call(ctx context.Context, params ...uint64) ([]uint64, error) {
+	return f.function.Call(WithModuleInstance(ctx, f.instance), params...)
 }
 
 // Instantiate compiles and instantiates a host module.
