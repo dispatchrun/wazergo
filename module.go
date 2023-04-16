@@ -160,8 +160,8 @@ func (m *ModuleInstance[T]) Memory() api.Memory {
 
 func (m *ModuleInstance[T]) ExportedFunction(name string) api.Function {
 	if m.module != nil {
-		if fn := m.module.ExportedFunction(name); fn != nil {
-			return &moduleInstanceFunction[T]{fn, m}
+		if f := m.module.ExportedFunction(name); f != nil {
+			return &moduleInstanceFunction[T]{f, m}
 		}
 	}
 	return nil
