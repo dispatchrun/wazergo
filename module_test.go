@@ -50,10 +50,7 @@ func answer(a int) wazergo.Option[*hostInstance] {
 func TestMultipleHostModuleInstances(t *testing.T) {
 	ctx := context.Background()
 
-	runtime := wazero.NewRuntimeWithConfig(ctx, wazero.NewRuntimeConfig().
-		WithDebugInfoEnabled(true).
-		WithCustomSections(true),
-	)
+	runtime := wazero.NewRuntime(ctx)
 	defer runtime.Close(ctx)
 
 	// three copies, all share the same host module name but different state
