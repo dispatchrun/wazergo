@@ -824,11 +824,11 @@ func (arg List[T]) Len() int {
 	return int(arg.len)
 }
 
-func (arg List[T]) Index(index int) T {
+func (arg List[T]) Index(index int) Pointer[T] {
 	if index < 0 || index >= arg.Len() {
 		panic(fmt.Errorf("%T: index out of bounds (%d/%d)", arg, index, arg.Len()))
 	}
-	return arg.ptr.Index(index).Load()
+	return arg.ptr.Index(index)
 }
 
 func (arg List[T]) Range(fn func(int, T) bool) {
