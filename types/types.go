@@ -789,6 +789,12 @@ type List[T Object[T]] struct {
 	len uint32
 }
 
+// MakeList constructs a list from a pointer to an object of type T
+// and a length.
+func MakeList[T Object[T]](ptr Pointer[T], length int) List[T] {
+	return List[T]{ptr, uint32(length)}
+}
+
 func (arg List[T]) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
 	fmt.Fprintf(w, "[")
 	arg = arg.LoadValue(memory, stack)
