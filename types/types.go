@@ -789,9 +789,9 @@ type List[T Object[T]] struct {
 	len uint32
 }
 
-// NewList constructs a list from a pointer to an object of type T
+// MakeList constructs a list from a pointer to an object of type T
 // and a length.
-func NewList[T Object[T]](ptr Pointer[T], length int) List[T] {
+func MakeList[T Object[T]](ptr Pointer[T], length int) List[T] {
 	return List[T]{ptr, uint32(length)}
 }
 
