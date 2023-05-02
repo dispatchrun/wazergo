@@ -729,7 +729,7 @@ type Pointer[T Object[T]] struct {
 // This function is mostly useful to construct pointers to pass to module
 // methods in tests, its usage in actual production code should be rare.
 func New[T Object[T]]() Pointer[T] {
-	return Ptr[T](make(wasm.Memory, objectSize[T]()), 0)
+	return Ptr[T](wasm.NewFixedSizeMemory(uint32(objectSize[T]())), 0)
 }
 
 // Ptr constructs a pointer of objects T backed by a memory area at a specified

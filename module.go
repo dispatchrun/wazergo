@@ -138,7 +138,7 @@ func (c *CompiledModule[T]) Instantiate(ctx context.Context, options ...Option[T
 
 // ModuleInstance represents a module instance created from a compiled host module.
 type ModuleInstance[T Module] struct {
-	module     api.Module
+	api.Module
 	moduleName string
 	instance   T
 }
@@ -151,52 +151,14 @@ func (m *ModuleInstance[T]) Name() string {
 	return m.moduleName
 }
 
-func (m *ModuleInstance[T]) Memory() api.Memory {
-	if m.module != nil {
-		return m.module.Memory()
-	}
-	return nil
-}
-
 func (m *ModuleInstance[T]) ExportedFunction(name string) api.Function {
-	if m.module != nil {
-		if f := m.module.ExportedFunction(name); f != nil {
-			return &moduleInstanceFunction[T]{f, m}
-		}
-	}
-	return nil
-}
-
-func (m *ModuleInstance[T]) ExportedFunctionDefinitions() map[string]api.FunctionDefinition {
-	if m.module != nil {
-		return m.module.ExportedFunctionDefinitions()
-	}
-	return nil
-}
-
-func (m *ModuleInstance[T]) ExportedMemory(name string) api.Memory {
-	if m.module != nil {
-		return m.module.ExportedMemory(name)
-	}
-	return nil
-}
-
-func (m *ModuleInstance[T]) ExportedMemoryDefinitions() map[string]api.MemoryDefinition {
-	if m.module != nil {
-		return m.module.ExportedMemoryDefinitions()
-	}
-	return nil
-}
-
-func (m *ModuleInstance[T]) ExportedGlobal(name string) api.Global {
-	if m.module != nil {
-		return m.module.ExportedGlobal(name)
+	if f := m.Module.ExportedFunction(name); f != nil {
+		return &moduleInstanceFunction[T]{f, m}
 	}
 	return nil
 }
 
 func (m *ModuleInstance[T]) Close(ctx context.Context) error {
-	m.module = nil
 	return m.instance.Close(ctx)
 }
 
@@ -204,21 +166,17 @@ func (m *ModuleInstance[T]) CloseWithExitCode(ctx context.Context, _ uint32) err
 	return m.Close(ctx)
 }
 
-var (
-	_ api.Module = (*ModuleInstance[Module])(nil)
-)
-
 type moduleInstanceFunction[T Module] struct {
-	function api.Function
+	api.Function
 	instance *ModuleInstance[T]
 }
 
-func (f *moduleInstanceFunction[T]) Definition() api.FunctionDefinition {
-	return f.function.Definition()
+func (f *moduleInstanceFunction[T]) Call(ctx context.Context, params ...uint64) ([]uint64, error) {
+	return f.Function.Call(WithModuleInstance(ctx, f.instance), params...)
 }
 
-func (f *moduleInstanceFunction[T]) Call(ctx context.Context, params ...uint64) ([]uint64, error) {
-	return f.function.Call(WithModuleInstance(ctx, f.instance), params...)
+func (f *moduleInstanceFunction[T]) CallWithStack(ctx context.Context, stack []uint64) error {
+	return f.Function.CallWithStack(WithModuleInstance(ctx, f.instance), stack)
 }
 
 // Instantiate compiles and instantiates a host module.
