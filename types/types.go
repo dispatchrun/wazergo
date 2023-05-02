@@ -779,6 +779,13 @@ func (arg Pointer[T]) Index(index int) Pointer[T] {
 	return Pointer[T]{arg.memory, arg.offset + uint32(index*objectSize[T]())}
 }
 
+func (arg Pointer[T]) Append(buffer []T, count int) []T {
+	for i := 0; i < count; i++ {
+		buffer = append(buffer, arg.Index(i).Load())
+	}
+	return buffer
+}
+
 var (
 	_ Param[Pointer[None]] = Pointer[None]{}
 )
@@ -837,6 +844,13 @@ func (arg List[T]) Range(fn func(int, T) bool) {
 			break
 		}
 	}
+}
+
+func (arg List[T]) Append(buffer []T) []T {
+	if arg.Len() == 0 {
+		return buffer
+	}
+	return arg.Index(0).Append(buffer, arg.Len())
 }
 
 var (
