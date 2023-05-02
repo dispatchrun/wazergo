@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"reflect"
 	"strconv"
 	"syscall"
 	"time"
@@ -103,18 +102,7 @@ func UnsafeStoreObject[T Object[T]](mem []byte, obj T) {
 }
 
 func unsafeCastObject[T Object[T]](mem []byte) *T {
-	var typ T
-	if uintptr(typ.ObjectSize()) != unsafe.Sizeof(typ) {
-		panic("BUG: cannot perform unsafe load/store on Go value of type " + typeNameOf(typ))
-	}
-	if uintptr(len(mem)) < unsafe.Sizeof(typ) {
-		panic("BUG: byte slice is too short to load/store Go value of type " + typeNameOf(typ))
-	}
 	return (*T)(unsafe.Pointer(unsafe.SliceData(mem)))
-}
-
-func typeNameOf[T any](v T) string {
-	return reflect.TypeOf(v).String()
 }
 
 func objectSize[T Object[T]]() int {
@@ -828,9 +816,6 @@ func (arg Pointer[T]) Slice(count int) []T {
 
 func (arg Pointer[T]) UnsafeSlice(count int) []T {
 	var typ T
-	if uintptr(typ.ObjectSize()) != unsafe.Sizeof(typ) {
-		panic("BUG: cannot perform unsafe slice conversion from Go values of type " + typeNameOf(typ))
-	}
 	if count == 0 {
 		return nil
 	}
