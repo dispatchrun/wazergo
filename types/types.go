@@ -786,6 +786,16 @@ func (arg Pointer[T]) Append(buffer []T, count int) []T {
 	return buffer
 }
 
+func (arg Pointer[T]) UnsafeSlice(count int) []T {
+	if count == 0 {
+		return nil
+	}
+	var t T
+	size := t.ObjectSize()
+	data := wasm.Read(arg.memory, arg.offset, uint32(count*size))
+	return unsafe.Slice(*(**T)(unsafe.Pointer(&data)), count)
+}
+
 var (
 	_ Param[Pointer[None]] = Pointer[None]{}
 )
@@ -851,6 +861,13 @@ func (arg List[T]) Append(buffer []T) []T {
 		return buffer
 	}
 	return arg.Index(0).Append(buffer, arg.Len())
+}
+
+func (arg List[T]) UnsafeSlice() []T {
+	if arg.Len() == 0 {
+		return nil
+	}
+	return arg.Index(0).UnsafeSlice(arg.Len())
 }
 
 var (
