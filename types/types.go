@@ -797,7 +797,7 @@ func (arg Pointer[T]) UnsafeSlice(count int) []T {
 	var t T
 	size := t.ObjectSize()
 	data := wasm.Read(arg.memory, arg.offset, uint32(count*size))
-	return unsafe.Slice(*(**T)(unsafe.Pointer(&data)), count)
+	return unsafe.Slice((*T)(unsafe.Pointer(&data)), count)
 }
 
 var (
