@@ -81,6 +81,30 @@ type Object[T any] interface {
 	ObjectSize() int
 }
 
+// UnsafeLoadObject is a helper which may be used to implement the LoadObject
+// method for object types which do not contain any inner pointers.
+//
+//	func (v T) LoadObject(_ api.Memory, object []byte) T {
+//		return types.UnsafeLoadObject[T](object)
+//	}
+func UnsafeLoadObject[T Object[T]](mem []byte) T {
+	return *unsafeCastObject[T](mem)
+}
+
+// UnsafeStoreObject is a helper which may be used to implement the StoreObject
+// method for object types which do not contain any inner pointers.
+//
+//	func (v T) StoreObject(_ api.Memory, object []byte) {
+//		types.UnsafeStoreObject(object, v)
+//	}
+func UnsafeStoreObject[T Object[T]](mem []byte, obj T) {
+	*unsafeCastObject[T](mem) = obj
+}
+
+func unsafeCastObject[T Object[T]](mem []byte) *T {
+	return (*T)(unsafe.Pointer(unsafe.SliceData(mem)))
+}
+
 func objectSize[T Object[T]]() int {
 	var typ T
 	return typ.ObjectSize()
@@ -787,15 +811,15 @@ func (arg Pointer[T]) Append(buffer []T, count int) []T {
 }
 
 func (arg Pointer[T]) Slice(count int) []T {
-	return arg.Append(nil, count)
+	return arg.Append(make([]T, 0, count), count)
 }
 
 func (arg Pointer[T]) UnsafeSlice(count int) []T {
+	var typ T
 	if count == 0 {
 		return nil
 	}
-	var t T
-	size := t.ObjectSize()
+	size := typ.ObjectSize()
 	data := wasm.Read(arg.memory, arg.offset, uint32(count*size))
 	return unsafe.Slice((*T)(unsafe.Pointer(&data)), count)
 }
@@ -861,21 +885,15 @@ func (arg List[T]) Range(fn func(int, T) bool) {
 }
 
 func (arg List[T]) Append(buffer []T) []T {
-	if arg.Len() == 0 {
-		return buffer
-	}
-	return arg.Index(0).Append(buffer, arg.Len())
+	return arg.ptr.Append(buffer, arg.Len())
 }
 
 func (arg List[T]) Slice() []T {
-	return arg.Append(nil)
+	return arg.ptr.Slice(arg.Len())
 }
 
 func (arg List[T]) UnsafeSlice() []T {
-	if arg.Len() == 0 {
-		return nil
-	}
-	return arg.Index(0).UnsafeSlice(arg.Len())
+	return arg.ptr.UnsafeSlice(arg.Len())
 }
 
 var (
