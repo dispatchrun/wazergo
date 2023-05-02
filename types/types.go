@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"strconv"
 	"syscall"
 	"time"
@@ -79,6 +80,50 @@ type Object[T any] interface {
 	// LoadObject and StoreObjects are guaranteed to be at least of the length
 	// returned by this method.
 	ObjectSize() int
+}
+
+// UnsafeLoadObject is a helper which may be used to implement the LoadObject
+// method for object types which do not contain any inner pointers.
+//
+//	func (v T) LoadObject(_ api.Memory, object []byte) T {
+//		return types.UnsafeLoadObject[T](object)
+//	}
+func UnsafeLoadObject[T Object[T]](mem []byte) T {
+	return *unsafeCastObject[T](mem)
+}
+
+// UnsafeStoreObject is a helper which may be used to implement the StoreObject
+// method for object types which do not contain any inner pointers.
+//
+//	func (v T) StoreObject(_ api.Memory, object []byte) {
+//		types.UnsafeStoreObject(object, v)
+//	}
+func UnsafeStoreObject[T Object[T]](mem []byte, obj T) {
+	*unsafeCastObject[T](mem) = obj
+}
+
+func unsafeCastObject[T Object[T]](mem []byte) *T {
+	assertObjectSizeEqualsGoTypeSize[T]()
+	assertByteSliceCanFitGoTypeSize[T](mem)
+	return (*T)(unsafe.Pointer(unsafe.SliceData(mem)))
+}
+
+func assertObjectSizeEqualsGoTypeSize[T Object[T]]() {
+	var typ T
+	if uintptr(typ.ObjectSize()) != unsafe.Sizeof(typ) {
+		panic("BUG: cannot perform unsafe load/store on Go value of type " + typeNameOf(typ))
+	}
+}
+
+func assertByteSliceCanFitGoTypeSize[T any](b []byte) {
+	var typ T
+	if uintptr(len(b)) < unsafe.Sizeof(typ) {
+		panic("BUG: byte slice is too short to load/store Go value of type " + typeNameOf(typ))
+	}
+}
+
+func typeNameOf[T any](v T) string {
+	return reflect.TypeOf(v).String()
 }
 
 func objectSize[T Object[T]]() int {
@@ -787,10 +832,11 @@ func (arg Pointer[T]) Append(buffer []T, count int) []T {
 }
 
 func (arg Pointer[T]) Slice(count int) []T {
-	return arg.Append(nil, count)
+	return arg.Append(make([]T, 0, count), count)
 }
 
 func (arg Pointer[T]) UnsafeSlice(count int) []T {
+	assertObjectSizeEqualsGoTypeSize[T]()
 	if count == 0 {
 		return nil
 	}
@@ -868,14 +914,16 @@ func (arg List[T]) Append(buffer []T) []T {
 }
 
 func (arg List[T]) Slice() []T {
-	return arg.Append(nil)
+	return arg.Append(make([]T, 0, arg.Len()))
 }
 
 func (arg List[T]) UnsafeSlice() []T {
-	if arg.Len() == 0 {
+	assertObjectSizeEqualsGoTypeSize[T]()
+	n := arg.Len()
+	if n == 0 {
 		return nil
 	}
-	return arg.Index(0).UnsafeSlice(arg.Len())
+	return arg.Index(0).UnsafeSlice(n)
 }
 
 var (
