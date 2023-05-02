@@ -78,8 +78,8 @@ func TestLoadAndStoreObject(t *testing.T) {
 	testLoadAndStoreObject(t, Float32(0.1))
 	testLoadAndStoreObject(t, Float64(0.5))
 
-	testLoadAndStoreValue(t, Duration(0))
-	testLoadAndStoreValue(t, Duration(1e9))
+	testLoadAndStoreObject(t, Duration(0))
+	testLoadAndStoreObject(t, Duration(1e9))
 }
 
 func testLoadAndStoreObject[T Object[T]](t *testing.T, value T) {
