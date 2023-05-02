@@ -103,23 +103,14 @@ func UnsafeStoreObject[T Object[T]](mem []byte, obj T) {
 }
 
 func unsafeCastObject[T Object[T]](mem []byte) *T {
-	assertObjectSizeEqualsGoTypeSize[T]()
-	assertByteSliceCanFitGoTypeSize[T](mem)
-	return (*T)(unsafe.Pointer(unsafe.SliceData(mem)))
-}
-
-func assertObjectSizeEqualsGoTypeSize[T Object[T]]() {
 	var typ T
 	if uintptr(typ.ObjectSize()) != unsafe.Sizeof(typ) {
 		panic("BUG: cannot perform unsafe load/store on Go value of type " + typeNameOf(typ))
 	}
-}
-
-func assertByteSliceCanFitGoTypeSize[T any](b []byte) {
-	var typ T
-	if uintptr(len(b)) < unsafe.Sizeof(typ) {
+	if uintptr(len(mem)) < unsafe.Sizeof(typ) {
 		panic("BUG: byte slice is too short to load/store Go value of type " + typeNameOf(typ))
 	}
+	return (*T)(unsafe.Pointer(unsafe.SliceData(mem)))
 }
 
 func typeNameOf[T any](v T) string {
@@ -836,12 +827,14 @@ func (arg Pointer[T]) Slice(count int) []T {
 }
 
 func (arg Pointer[T]) UnsafeSlice(count int) []T {
-	assertObjectSizeEqualsGoTypeSize[T]()
+	var typ T
+	if uintptr(typ.ObjectSize()) != unsafe.Sizeof(typ) {
+		panic("BUG: cannot perform unsafe slice conversion from Go values of type " + typeNameOf(typ))
+	}
 	if count == 0 {
 		return nil
 	}
-	var t T
-	size := t.ObjectSize()
+	size := typ.ObjectSize()
 	data := wasm.Read(arg.memory, arg.offset, uint32(count*size))
 	return unsafe.Slice((*T)(unsafe.Pointer(&data)), count)
 }
@@ -907,23 +900,15 @@ func (arg List[T]) Range(fn func(int, T) bool) {
 }
 
 func (arg List[T]) Append(buffer []T) []T {
-	if arg.Len() == 0 {
-		return buffer
-	}
-	return arg.Index(0).Append(buffer, arg.Len())
+	return arg.ptr.Append(buffer, arg.Len())
 }
 
 func (arg List[T]) Slice() []T {
-	return arg.Append(make([]T, 0, arg.Len()))
+	return arg.ptr.Slice(arg.Len())
 }
 
 func (arg List[T]) UnsafeSlice() []T {
-	assertObjectSizeEqualsGoTypeSize[T]()
-	n := arg.Len()
-	if n == 0 {
-		return nil
-	}
-	return arg.Index(0).UnsafeSlice(n)
+	return arg.ptr.UnsafeSlice(arg.Len())
 }
 
 var (
