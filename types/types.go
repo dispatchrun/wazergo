@@ -845,7 +845,7 @@ func (arg List[T]) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
 	arg = arg.LoadValue(memory, stack)
 	for i := 0; i < arg.Len(); i++ {
 		if i > 0 {
-			fmt.Fprintf(w, ", ")
+			fmt.Fprintf(w, ",")
 		}
 		p := arg.ptr.Index(i)
 		v := p.Load()

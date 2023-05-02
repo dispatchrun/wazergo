@@ -1,11 +1,11 @@
 package types_test
 
 import (
-	"fmt"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
+	"unsafe"
 
 	. "github.com/stealthrocket/wazergo/types"
 	"github.com/tetratelabs/wazero/api"
@@ -64,12 +64,13 @@ func testLoadAndStoreValue[T ParamResult[T]](t *testing.T, value T) {
 }
 
 type Vec3d struct {
-	X, Y, Z float32
+	X float32 `name:"x"`
+	Y float32 `name:"y"`
+	Z float32 `name:"z"`
 }
 
 func (v Vec3d) FormatObject(w io.Writer, m api.Memory, object []byte) {
-	v = v.LoadObject(m, object)
-	fmt.Fprintf(w, "{x:%v,y:%v,z:%v}", v.X, v.Y, v.Z)
+	Format(w, v.LoadObject(m, object))
 }
 
 func (v Vec3d) LoadObject(_ api.Memory, object []byte) Vec3d {
@@ -121,6 +122,30 @@ func testLoadAndStoreObject[T Object[T]](t *testing.T, value T) {
 	}
 }
 
+type structType[T any] struct {
+	value T
+}
+
+func (t structType[T]) FormatObject(w io.Writer, memory api.Memory, object []byte) {
+	Format(w, t.LoadObject(memory, object).value)
+}
+
+func (t structType[T]) LoadObject(memory api.Memory, object []byte) structType[T] {
+	return UnsafeLoadObject[structType[T]](object)
+}
+
+func (t structType[T]) StoreObject(memory api.Memory, object []byte) {
+	UnsafeStoreObject(object, t)
+}
+
+func (t structType[T]) ObjectSize() int {
+	return int(unsafe.Sizeof(t))
+}
+
+func st[T any](v T) structType[T] {
+	return structType[T]{value: v}
+}
+
 func TestFormatObject(t *testing.T) {
 	testFormatObject(t, None{}, `(none)`)
 
@@ -144,6 +169,16 @@ func TestFormatObject(t *testing.T) {
 	testFormatObject(t, Duration(1e9), `1s`)
 
 	testFormatObject(t, Vec3d{1, 2, 3}, `{x:1,y:2,z:3}`)
+
+	testFormatObject(t, st(struct{}{}), `{}`)
+	testFormatObject(t, st(struct{ F bool }{false}), `{F:false}`)
+	testFormatObject(t, st(struct{ F bool }{true}), `{F:true}`)
+	testFormatObject(t, st(struct{ F int32 }{-1}), `{F:-1}`)
+	testFormatObject(t, st(struct{ F uint64 }{42}), `{F:42}`)
+	testFormatObject(t, st(struct{ F float64 }{0.5}), `{F:0.5}`)
+	testFormatObject(t, st(struct{ F string }{"hello world"}), `{F:"hello world"}`)
+	testFormatObject(t, st(struct{ F []byte }{[]byte("hello world")}), `{F:"hello world"}`)
+	testFormatObject(t, st(struct{ F [3]int32 }{[3]int32{1, 2, 3}}), `{F:[1,2,3]}`)
 }
 
 func testFormatObject[T Object[T]](t *testing.T, value T, format string) {
