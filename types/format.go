@@ -28,15 +28,18 @@ type Formatter interface {
 //		Field int32 `name:"field"`
 //	}
 //
-// If any of the values impelement the Formatter interface, formatting is
-// delegated to the Format method.
+// If any of the values impelement the Formatter or fmt.Stringer interfaces,
+// formatting is delegated to those methods.
 //
 // The implementation of Format has to use reflection, so it may not be best
 // suited to use in contexts where performance is critical, in which cases the
 // program is better off providing a custom implementation of the method.
 func Format(w io.Writer, v any) { format(w, reflect.ValueOf(v)) }
 
-var formatterInterface = reflect.TypeOf((*Formatter)(nil)).Elem()
+var (
+	formatterInterface = reflect.TypeOf((*Formatter)(nil)).Elem()
+	stringerInterface  = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
+)
 
 func format(w io.Writer, v reflect.Value) {
 	// TODO: to improve performance we could generate the formatters once and
@@ -44,6 +47,10 @@ func format(w io.Writer, v reflect.Value) {
 	t := v.Type()
 	if t.Implements(formatterInterface) {
 		v.Interface().(Formatter).Format(w)
+		return
+	}
+	if t.Implements(stringerInterface) {
+		io.WriteString(w, v.Interface().(fmt.Stringer).String())
 		return
 	}
 	switch t.Kind() {
