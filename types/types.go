@@ -883,12 +883,12 @@ func (arg Pointer[T]) Slice(count int) []T {
 
 func (arg Pointer[T]) UnsafeSlice(count int) []T {
 	var typ T
-	if count == 0 {
+	size := typ.ObjectSize()
+	if count == 0 || size == 0 {
 		return nil
 	}
-	size := typ.ObjectSize()
 	data := wasm.Read(arg.memory, arg.offset, uint32(count*size))
-	return unsafe.Slice((*T)(unsafe.Pointer(&data)), count)
+	return unsafe.Slice((*T)(unsafe.Pointer(&data[0])), count)
 }
 
 var (
