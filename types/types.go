@@ -786,6 +786,10 @@ func (arg Pointer[T]) Append(buffer []T, count int) []T {
 	return buffer
 }
 
+func (arg Pointer[T]) Slice(count int) []T {
+	return arg.Append(nil, count)
+}
+
 func (arg Pointer[T]) UnsafeSlice(count int) []T {
 	if count == 0 {
 		return nil
@@ -861,6 +865,10 @@ func (arg List[T]) Append(buffer []T) []T {
 		return buffer
 	}
 	return arg.Index(0).Append(buffer, arg.Len())
+}
+
+func (arg List[T]) Slice() []T {
+	return arg.Append(nil)
 }
 
 func (arg List[T]) UnsafeSlice() []T {
