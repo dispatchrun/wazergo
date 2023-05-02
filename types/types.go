@@ -112,12 +112,16 @@ func objectSize[T Object[T]]() int {
 
 type Int8 int8
 
+func (arg Int8) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Int8) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Int8) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Int8) LoadValue(memory api.Memory, stack []uint64) Int8 {
@@ -148,16 +152,21 @@ var (
 	_ Object[Int8] = Int8(0)
 	_ Param[Int8]  = Int8(0)
 	_ Result       = Int8(0)
+	_ Formatter    = Int8(0)
 )
 
 type Int16 int16
 
+func (arg Int16) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Int16) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Int16) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Int16) LoadValue(memory api.Memory, stack []uint64) Int16 {
@@ -188,16 +197,21 @@ var (
 	_ Object[Int16] = Int16(0)
 	_ Param[Int16]  = Int16(0)
 	_ Result        = Int16(0)
+	_ Formatter     = Int16(0)
 )
 
 type Int32 int32
 
+func (arg Int32) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Int32) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Int32) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Int32) LoadValue(memory api.Memory, stack []uint64) Int32 {
@@ -228,16 +242,21 @@ var (
 	_ Object[Int32] = Int32(0)
 	_ Param[Int32]  = Int32(0)
 	_ Result        = Int32(0)
+	_ Formatter     = Int32(0)
 )
 
 type Int64 int64
 
+func (arg Int64) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Int64) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Int64) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Int64) LoadValue(memory api.Memory, stack []uint64) Int64 {
@@ -268,16 +287,21 @@ var (
 	_ Object[Int64] = Int64(0)
 	_ Param[Int64]  = Int64(0)
 	_ Result        = Int64(0)
+	_ Formatter     = Int64(0)
 )
 
 type Bool bool
 
+func (arg Bool) Format(w io.Writer) {
+	fmt.Fprintf(w, "%t", arg)
+}
+
 func (arg Bool) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%t", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Bool) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%t", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Bool) LoadValue(memory api.Memory, stack []uint64) Bool {
@@ -315,16 +339,21 @@ var (
 	_ Object[Bool] = Bool(false)
 	_ Param[Bool]  = Bool(false)
 	_ Result       = Bool(false)
+	_ Formatter    = Bool(false)
 )
 
 type Uint8 uint8
 
+func (arg Uint8) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Uint8) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Uint8) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Uint8) LoadValue(memory api.Memory, stack []uint64) Uint8 {
@@ -355,16 +384,21 @@ var (
 	_ Object[Uint8] = Uint8(0)
 	_ Param[Uint8]  = Uint8(0)
 	_ Result        = Uint8(0)
+	_ Formatter     = Uint8(0)
 )
 
 type Uint16 uint16
 
+func (arg Uint16) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Uint16) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Uint16) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Uint16) LoadValue(memory api.Memory, stack []uint64) Uint16 {
@@ -395,16 +429,21 @@ var (
 	_ Object[Uint16] = Uint16(0)
 	_ Param[Uint16]  = Uint16(0)
 	_ Result         = Uint16(0)
+	_ Formatter      = Uint16(0)
 )
 
 type Uint32 uint32
 
+func (arg Uint32) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Uint32) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Uint32) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Uint32) LoadValue(memory api.Memory, stack []uint64) Uint32 {
@@ -435,16 +474,21 @@ var (
 	_ Object[Uint32] = Uint32(0)
 	_ Param[Uint32]  = Uint32(0)
 	_ Result         = Uint32(0)
+	_ Formatter      = Uint32(0)
 )
 
 type Uint64 uint64
 
+func (arg Uint64) Format(w io.Writer) {
+	fmt.Fprintf(w, "%d", arg)
+}
+
 func (arg Uint64) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%d", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Uint64) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%d", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Uint64) LoadValue(memory api.Memory, stack []uint64) Uint64 {
@@ -475,16 +519,21 @@ var (
 	_ Object[Uint64] = Uint64(0)
 	_ Param[Uint64]  = Uint64(0)
 	_ Result         = Uint64(0)
+	_ Formatter      = Uint64(0)
 )
 
 type Float32 float32
 
+func (arg Float32) Format(w io.Writer) {
+	fmt.Fprintf(w, "%g", arg)
+}
+
 func (arg Float32) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%g", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Float32) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%g", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Float32) LoadValue(memory api.Memory, stack []uint64) Float32 {
@@ -515,16 +564,21 @@ var (
 	_ Object[Float32] = Float32(0)
 	_ Param[Float32]  = Float32(0)
 	_ Result          = Float32(0)
+	_ Formatter       = Float32(0)
 )
 
 type Float64 float64
 
+func (arg Float64) Format(w io.Writer) {
+	fmt.Fprintf(w, "%g", arg)
+}
+
 func (arg Float64) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%g", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Float64) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%g", arg.LoadObject(memory, object))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Float64) LoadValue(memory api.Memory, stack []uint64) Float64 {
@@ -554,16 +608,21 @@ func (arg Float64) ObjectSize() int {
 var (
 	_ Param[Float64] = Float64(0)
 	_ Result         = Float64(0)
+	_ Formatter      = Float64(0)
 )
 
 type Duration time.Duration
 
+func (arg Duration) Format(w io.Writer) {
+	fmt.Fprintf(w, "%s", time.Duration(arg))
+}
+
 func (arg Duration) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%s", time.Duration(arg.LoadValue(memory, stack)))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Duration) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	fmt.Fprintf(w, "%s", time.Duration(arg.LoadObject(memory, object)))
+	arg.LoadObject(memory, object).Format(w)
 }
 
 func (arg Duration) LoadValue(memory api.Memory, stack []uint64) Duration {
@@ -594,6 +653,7 @@ var (
 	_ Object[Duration] = Duration(0)
 	_ Param[Duration]  = Duration(0)
 	_ Result           = Duration(0)
+	_ Formatter        = Duration(0)
 )
 
 type primitive interface {
@@ -612,23 +672,23 @@ type primitive interface {
 // complex types.
 type Array[T primitive] []T
 
-func (arg Array[T]) FormatObject(w io.Writer, memory api.Memory, object []byte) {
-	arg.format(w, arg.LoadObject(memory, object))
-}
-
-func (arg Array[T]) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	arg.format(w, arg.LoadValue(memory, stack))
-}
-
-func (arg Array[T]) format(w io.Writer, array []T) {
+func (arg Array[T]) Format(w io.Writer) {
 	fmt.Fprintf(w, "[")
-	for i, v := range array {
+	for i, v := range arg {
 		if i > 0 {
 			fmt.Fprintf(w, ", ")
 		}
 		fmt.Fprintf(w, "%v", v)
 	}
 	fmt.Fprintf(w, "]")
+}
+
+func (arg Array[T]) FormatObject(w io.Writer, memory api.Memory, object []byte) {
+	arg.LoadObject(memory, object).Format(w)
+}
+
+func (arg Array[T]) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg Array[T]) LoadObject(memory api.Memory, object []byte) Array[T] {
@@ -665,6 +725,7 @@ func (arg Array[T]) ValueTypes() []api.ValueType {
 
 var (
 	_ Param[Array[byte]] = Array[byte](nil)
+	_ Formatter          = Array[byte](nil)
 )
 
 // Bytes is a type alias for arrays of bytes, which is a common use case
@@ -717,14 +778,19 @@ func (arg Bytes) array() Array[byte] {
 
 var (
 	_ Param[Bytes] = Bytes(nil)
+	_ Formatter    = Bytes(nil)
 )
 
 // String is similar to Bytes but holds the value as a Go string which is not
 // sharing memory with the WebAssembly program memory anymore.
 type String string
 
+func (arg String) Format(w io.Writer) {
+	fmt.Fprintf(w, "%q", arg)
+}
+
 func (arg String) FormatValue(w io.Writer, memory api.Memory, stack []uint64) {
-	fmt.Fprintf(w, "%q", arg.LoadValue(memory, stack))
+	arg.LoadValue(memory, stack).Format(w)
 }
 
 func (arg String) LoadValue(memory api.Memory, stack []uint64) String {
@@ -739,6 +805,7 @@ func (arg String) ValueTypes() []api.ValueType {
 
 var (
 	_ Param[String] = String("")
+	_ Formatter     = String("")
 )
 
 // Pointer is a parameter type used to represent a pointer to an object held in
@@ -979,9 +1046,13 @@ var (
 // None is a special type of size zero bytes.
 type None struct{}
 
-func (None) FormatValue(w io.Writer, _ api.Memory, _ []uint64) { fmt.Fprintf(w, "(none)") }
+func formatNone(w io.Writer) { io.WriteString(w, "(none)") }
 
-func (None) FormatObject(w io.Writer, _ api.Memory, _ []byte) { fmt.Fprintf(w, "(none)") }
+func (None) Format(w io.Writer) { formatNone(w) }
+
+func (None) FormatValue(w io.Writer, _ api.Memory, _ []uint64) { formatNone(w) }
+
+func (None) FormatObject(w io.Writer, _ api.Memory, _ []byte) { formatNone(w) }
 
 func (None) LoadValue(api.Memory, []uint64) (none None) { return }
 
@@ -999,6 +1070,7 @@ var (
 	_ Object[None] = None{}
 	_ Param[None]  = None{}
 	_ Result       = None{}
+	_ Formatter    = None{}
 )
 
 // Error is a special optional type which either contains an error or no values.
