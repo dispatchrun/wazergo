@@ -878,7 +878,7 @@ func (opt Optional[T]) StoreValue(memory api.Memory, stack []uint64) {
 		for i := range stack[:n] {
 			stack[i] = 0
 		}
-		stack[n] = api.EncodeI32(errno(opt.err))
+		stack[n] = api.EncodeI32(int32(AsErrno(opt.err)))
 	} else {
 		opt.res.StoreValue(memory, stack[:n:n])
 		stack[n] = 0
@@ -1015,7 +1015,7 @@ func makeErrno(errno int32) error {
 	return Errno(errno)
 }
 
-func errno(err error) int32 {
+func AsErrno(err error) Errno {
 	if err == nil {
 		return 0
 	}
@@ -1024,9 +1024,9 @@ func errno(err error) int32 {
 		case nil:
 			return -1 // unknown, just don't return 0
 		case interface{ Errno() int32 }:
-			return e.Errno()
+			return Errno(e.Errno())
 		case syscall.Errno:
-			return int32(e)
+			return Errno(int32(e))
 		default:
 			err = e
 		}
