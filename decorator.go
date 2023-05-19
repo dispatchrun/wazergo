@@ -32,7 +32,7 @@ func Log[T Module](logger *log.Logger) Decorator[T] {
 		if logger == nil {
 			return fn
 		}
-		n := fn.StackParamCount()
+		n := fn.NumParams()
 		return fn.WithFunc(func(this T, ctx context.Context, module api.Module, stack []uint64) {
 			params := make([]uint64, n)
 			copy(params, stack)

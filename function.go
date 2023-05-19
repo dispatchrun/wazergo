@@ -25,15 +25,19 @@ type Function[T any] struct {
 	Func    func(T, context.Context, api.Module, []uint64)
 }
 
-// StackParamCount is the number of parameters this function reads from
-// the stack.
-func (f *Function[T]) StackParamCount() int {
+// NumParams is the number of parameters this function reads from the stack.
+//
+// Note that this is not necessarily the same as len(f.Params), since Params
+// holds higher level values that may correspond to more than one stack param.
+func (f *Function[T]) NumParams() int {
 	return countStackValues(f.Params)
 }
 
-// StackResultCount is the number of return values this function writes to
-// the stack.
-func (f *Function[T]) StackResultCount() int {
+// NumResults is the number of return values this function writes to the stack.
+//
+// Note that this is not necessarily the same as len(f.Results), since Results
+// holds higher level values that may correspond to more than one stack result.
+func (f *Function[T]) NumResults() int {
 	return countStackValues(f.Results)
 }
 

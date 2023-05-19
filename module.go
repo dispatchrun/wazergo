@@ -44,8 +44,8 @@ func Build[T Module](runtime wazero.Runtime, mod HostModule[T]) wazero.HostModul
 			fn.Name = export
 		}
 
-		paramTypes := appendValueTypes(make([]api.ValueType, 0, fn.StackParamCount()), fn.Params)
-		resultTypes := appendValueTypes(make([]api.ValueType, 0, fn.StackResultCount()), fn.Results)
+		paramTypes := appendValueTypes(make([]api.ValueType, 0, fn.NumParams()), fn.Params)
+		resultTypes := appendValueTypes(make([]api.ValueType, 0, fn.NumResults()), fn.Results)
 
 		builder.NewFunctionBuilder().
 			WithGoModuleFunction(bind(fn.Func), paramTypes, resultTypes).

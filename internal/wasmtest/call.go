@@ -11,7 +11,7 @@ import (
 func Call[R types.Param[R], T any](fn wazergo.Function[T], ctx context.Context, module api.Module, this T, args ...types.Result) (ret R) {
 	malloc = 0
 
-	stack := make([]uint64, max(fn.StackParamCount(), fn.StackResultCount()))
+	stack := make([]uint64, max(fn.NumParams(), fn.NumResults()))
 	memory := module.Memory()
 	offset := 0
 
