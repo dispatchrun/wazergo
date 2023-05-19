@@ -37,6 +37,13 @@ func (f *Function[T]) StackResultCount() int {
 	return countStackValues(f.Results)
 }
 
+// WithFunc returns a copy of the Function with the internal Func field
+// replaced.
+func (f Function[T]) WithFunc(fn func(T, context.Context, api.Module, []uint64)) Function[T] {
+	f.Func = fn
+	return f
+}
+
 func countStackValues(values []Value) (count int) {
 	for _, v := range values {
 		count += len(v.ValueTypes())
