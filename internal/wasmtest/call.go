@@ -11,15 +11,7 @@ import (
 func Call[R types.Param[R], T any](fn wazergo.Function[T], ctx context.Context, module api.Module, this T, args ...types.Result) (ret R) {
 	malloc = 0
 
-	numParams := countValueTypes(fn.Params)
-	numResults := countValueTypes(fn.Results)
-
-	stackSize := numParams
-	if numResults > stackSize {
-		stackSize = numResults
-	}
-
-	stack := make([]uint64, stackSize)
+	stack := make([]uint64, max(fn.StackParamCount(), fn.StackResultCount()))
 	memory := module.Memory()
 	offset := 0
 
@@ -32,9 +24,9 @@ func Call[R types.Param[R], T any](fn wazergo.Function[T], ctx context.Context, 
 	return ret.LoadValue(memory, stack)
 }
 
-func countValueTypes(values []types.Value) (n int) {
-	for _, v := range values {
-		n += len(v.ValueTypes())
+func max(a, b int) int {
+	if a > b {
+		return a
 	}
-	return n
+	return b
 }

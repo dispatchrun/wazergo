@@ -44,8 +44,8 @@ func Build[T Module](runtime wazero.Runtime, mod HostModule[T]) wazero.HostModul
 			fn.Name = export
 		}
 
-		paramTypes := concatValueTypes(fn.Params)
-		resultTypes := concatValueTypes(fn.Results)
+		paramTypes := appendValueTypes(make([]api.ValueType, 0, fn.StackParamCount()), fn.Params)
+		resultTypes := appendValueTypes(make([]api.ValueType, 0, fn.StackResultCount()), fn.Results)
 
 		builder.NewFunctionBuilder().
 			WithGoModuleFunction(bind(fn.Func), paramTypes, resultTypes).
@@ -56,16 +56,11 @@ func Build[T Module](runtime wazero.Runtime, mod HostModule[T]) wazero.HostModul
 	return builder
 }
 
-func concatValueTypes(values []Value) []api.ValueType {
-	numValueTypes := 0
+func appendValueTypes(buffer []api.ValueType, values []Value) []api.ValueType {
 	for _, v := range values {
-		numValueTypes += len(v.ValueTypes())
+		buffer = append(buffer, v.ValueTypes()...)
 	}
-	valueTypes := make([]api.ValueType, 0, numValueTypes)
-	for _, v := range values {
-		valueTypes = append(valueTypes, v.ValueTypes()...)
-	}
-	return valueTypes
+	return buffer
 }
 
 func bind[T Module](f func(T, context.Context, api.Module, []uint64)) api.GoModuleFunction {
