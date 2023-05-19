@@ -32,14 +32,8 @@ func Log[T Module](logger *log.Logger) Decorator[T] {
 		if logger == nil {
 			return fn
 		}
-		f := fn.Func
-		n := 0
-
-		for _, v := range fn.Params {
-			n += len(v.ValueTypes())
-		}
-
-		fn.Func = func(this T, ctx context.Context, module api.Module, stack []uint64) {
+		n := fn.NumParams()
+		return fn.WithFunc(func(this T, ctx context.Context, module api.Module, stack []uint64) {
 			params := make([]uint64, n)
 			copy(params, stack)
 
@@ -61,10 +55,9 @@ func Log[T Module](logger *log.Logger) Decorator[T] {
 				}
 			}()
 
-			f(this, ctx, module, stack)
+			fn.Func(this, ctx, module, stack)
 			panicked = false
-		}
-		return fn
+		})
 	})
 }
 

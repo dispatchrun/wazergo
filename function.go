@@ -25,6 +25,36 @@ type Function[T any] struct {
 	Func    func(T, context.Context, api.Module, []uint64)
 }
 
+// NumParams is the number of parameters this function reads from the stack.
+//
+// Note that this is not necessarily the same as len(f.Params), since Params
+// holds higher level values that may correspond to more than one stack param.
+func (f *Function[T]) NumParams() int {
+	return countStackValues(f.Params)
+}
+
+// NumResults is the number of return values this function writes to the stack.
+//
+// Note that this is not necessarily the same as len(f.Results), since Results
+// holds higher level values that may correspond to more than one stack result.
+func (f *Function[T]) NumResults() int {
+	return countStackValues(f.Results)
+}
+
+// WithFunc returns a copy of the Function with the internal Func field
+// replaced.
+func (f Function[T]) WithFunc(fn func(T, context.Context, api.Module, []uint64)) Function[T] {
+	f.Func = fn
+	return f
+}
+
+func countStackValues(values []Value) (count int) {
+	for _, v := range values {
+		count += len(v.ValueTypes())
+	}
+	return
+}
+
 // F0 is the Function constructor for functions accepting no parameters.
 func F0[T any, R Result](fn func(T, context.Context) R) Function[T] {
 	var ret R
