@@ -26,6 +26,12 @@ type decoratorFunc[T Module] func(string, Function[T]) Function[T]
 
 func (d decoratorFunc[T]) Decorate(module string, fn Function[T]) Function[T] { return d(module, fn) }
 
+// Decorated returns a decorated function.
+func Decorated[T Module](fn Function[T], decorated func(T, context.Context, api.Module, []uint64)) Function[T] {
+	fn.Func = decorated
+	return fn
+}
+
 // Log constructs a function decorator which adds logging to function calls.
 func Log[T Module](logger *log.Logger) Decorator[T] {
 	return DecoratorFunc(func(module string, fn Function[T]) Function[T] {
