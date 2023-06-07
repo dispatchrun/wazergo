@@ -846,6 +846,24 @@ func (arg Pointer[T]) ValueTypes() []api.ValueType {
 	return []api.ValueType{api.ValueTypeI32}
 }
 
+func (arg Pointer[T]) FormatObject(w io.Writer, memory api.Memory, object []byte) {
+	// TODO: recursively follow pointer
+	fmt.Fprintf(w, "Pointer(%#x)", arg.offset)
+}
+
+func (arg Pointer[T]) LoadObject(memory api.Memory, object []byte) Pointer[T] {
+	offset := uint32(binary.LittleEndian.Uint32(object))
+	return Pointer[T]{memory, offset}
+}
+
+func (arg Pointer[T]) StoreObject(memory api.Memory, object []byte) {
+	binary.LittleEndian.PutUint32(object, arg.offset)
+}
+
+func (arg Pointer[T]) ObjectSize() int {
+	return 4
+}
+
 func (arg Pointer[T]) Memory() api.Memory {
 	return arg.memory
 }
